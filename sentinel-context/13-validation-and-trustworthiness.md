@@ -14,7 +14,7 @@ Hamza owns implementation for this file because it belongs to the Sentinel backe
 
 **Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
-Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal validation implementation to build the UI/Botpress layer.
+Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal validation implementation to build the frontend.
 
 ## Why it matters for the demo
 
@@ -103,6 +103,8 @@ Every active constraint must be tied to an exact source quote and section/page f
 
 In production, a policy owner would approve extracted constraints before activation. So the LLM proposes constraints, but the policy document is the authority.
 ```
+
+The demo focuses procurement because autonomous agents can commit spend, bypass vendor controls, or leak payment instructions—exactly where "prompting" is obviously insufficient.
 
 Policy-owner approval is pitch-only / future production note, not a hackathon feature.
 

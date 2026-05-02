@@ -16,7 +16,7 @@ Hamza owns implementation for this file because it belongs to the Sentinel backe
 
 **Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
-Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal reducer/validator implementation to build the UI/Botpress layer.
+Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal reducer/validator implementation to build the frontend.
 
 ## Core safety philosophy
 
@@ -172,7 +172,7 @@ Prevention:
 
 Prevention:
 
-- Use stable IDs like `action.promise_refund`, `condition.manager_approval`, and `violation.refund_without_approval`.
+- Use stable IDs like `action.commit_purchase`, `condition.manager_approval`, `condition.vendor_approved`, `action.share_payment_credentials`, `violation.purchase_without_approval`, `violation.unapproved_vendor_commitment`, `violation.payment_credentials_shared` (procurement primary), plus fallback IDs like `action.promise_refund` and `violation.refund_without_approval`.
 - Duplicate IDs are rejected or ignored.
 - Similar/duplicate concepts should be merged only through `MERGE_NODES`.
 

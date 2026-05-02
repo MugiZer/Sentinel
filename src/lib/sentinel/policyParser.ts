@@ -1,6 +1,12 @@
 import type { PolicySection } from "./types";
 
-import { NORTHSTAR_DOCUMENT_NAME } from "./fixtures";
+import {
+  catalogDocumentKey,
+  isNorthstarCatalogDocument,
+  NORTHSTAR_DOCUMENT_NAME,
+} from "./documentCatalog";
+
+export { catalogDocumentKey } from "./documentCatalog";
 
 /** Canonical Northstar headings → stable IDs (slice 2 contract). */
 const NORTHSTAR_HEADINGS: { id: string; title: string }[] = [
@@ -89,27 +95,6 @@ function dedupeOverlapping(sorted: HeadingMatch[]): HeadingMatch[] {
     out.push(m);
   }
   return out;
-}
-
-function normalizeCatalogTitle(name: string): string {
-  return name.replace(/\s+/g, " ").trim().toLowerCase();
-}
-
-function isNorthstarCatalogDocument(documentName: string): boolean {
-  return (
-    normalizeCatalogTitle(documentName) === normalizeCatalogTitle(NORTHSTAR_DOCUMENT_NAME)
-  );
-}
-
-/** Stable key derived from caller-supplied catalog title (underscore slug, lowercase). */
-export function catalogDocumentKey(documentName: string): string {
-  return (
-    documentName
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_|_$/g, "") || "document"
-  );
 }
 
 /**

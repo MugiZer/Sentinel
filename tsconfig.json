@@ -37,6 +37,7 @@
   ],
   "exclude": [
     "node_modules",
-    "sentinel-app"
+    "sentinel-app",
+    "**/*.test.ts"
   ]
 }

@@ -6,30 +6,35 @@ Preserve Sentinel's core product identity so every implementation agent stays al
 
 Source sections: 0, 1, 2, 3, final concise definition.
 
-Sentinel is a Botpress-native policy verification layer for enterprise AI agents. It turns enterprise policy documents into executable policy graphs that verify Botpress agent responses in real time.
+Sentinel is a **policy firewall / verification layer** for **autonomous Botpress enterprise agents**. Botpress agents propose risky business actions and customer-facing text; Sentinel validates proposals **before** they are sent or executed, using policy documents compiled into deterministic checks and source-grounded audit evidence.
 
-Core thesis: prompting is not proof. The agent can be prompted to follow policy, but Sentinel adds an external verification layer that checks proposed responses before users see them.
+**Core thesis:** prompting is not proof. **Botpress agents propose. Sentinel validates. Botpress sends only verified output.**
+
+Enterprise agents can accidentally commit money, approve the wrong vendors, or leak payment credentials—clear risks judges grasp quickly. The **primary hackathon demo** is an **Enterprise Procurement Agent**; a **refund / customer-support** path remains a **fallback / simple test** scenario (do not erase it from the build).
 
 ## Builder ownership
 
-**Shared owner:** Kaveh (Builder 1) and Hamza (Builder 2)
+**Builder 1 — Kaveh:** frontend dashboard, Botpress ADK project, procurement runtime agent, compile-time policy workflow, demo surface, presentation.
 
-This file defines shared product alignment. Kaveh is responsible for preserving the demo/presentation interpretation. Hamza is responsible for preserving the backend/trustworthiness interpretation.
+**Builder 2 — Hamza:** Sentinel backend, canonical types, `/api/verify`, `/api/policy/compile`, `/api/audit`, deterministic evaluator, policy graph/checks, audit store, source quote validation, candidate vs active state.
+
+**Integration:** Kaveh consumes Hamza’s backend only through those three HTTP APIs. **`/api/verify` is the runtime authority** for allow/block/rewrite; UI and Botpress must not hardcode final decisions.
 
 Any scope change here must be agreed by both builders.
 
 ## Why it matters for the demo
 
-The demo must communicate one sharp vertical slice: a bank policy document becomes source-grounded runtime enforcement for a Botpress support agent. Judges should understand that Sentinel is not another prompt, chatbot wrapper, or broad compliance platform.
+The demo must communicate one sharp vertical slice: an **enterprise procurement policy** becomes **source-grounded runtime enforcement** for a **Botpress Enterprise Procurement Agent**. Judges should understand Sentinel is not another prompt, chatbot wrapper, or broad compliance platform—it is **mandatory verification between draft and send**.
 
 ## Scope
 
 ### In scope
 
 - Product name: Sentinel.
-- Botpress-native framing.
-- Northstar Bank support-agent demo.
-- Policy document -> document index -> policy graph -> deterministic checks -> Botpress proposed response -> runtime fact extraction -> check evaluation -> allow/warn/block/rewrite -> audit log.
+- Category: policy firewall / verification layer for Botpress enterprise agents.
+- **Primary:** Enterprise Procurement Agent demo (large purchase, approvals, vendor status, payment credential sharing).
+- **Secondary / fallback:** customer-support refund promise scenario for resilience and quick tests.
+- Policy document → document index → policy graph → deterministic checks → Botpress **proposed response** (candidate; not sent) → runtime fact extraction → check evaluation → allow/warn/block/rewrite → audit log.
 - Source-grounded audit trail.
 - Hackathon-safe scope.
 
@@ -67,21 +72,21 @@ Core objects used by the product slice:
 
 ## Main flow
 
-1. A company uploads or selects a policy document.
-2. Sentinel indexes policy sections.
-3. Policy extraction agents build a source-grounded policy graph.
+1. A company uploads or selects a policy document (e.g. **Enterprise Procurement Agent Policy**).
+2. Sentinel indexes policy sections (with Botpress compile-time agents proposing structure; Sentinel validates and activates).
+3. Policy extraction agents propose a source-grounded policy graph; Sentinel activates only validated graph/checks.
 4. Graph relations compile into deterministic checks.
-5. A Botpress support agent drafts a response.
-6. Sentinel extracts compact runtime facts from the proposed response.
+5. A **Botpress Enterprise Procurement Agent** drafts a **proposed response** (labeled **not sent yet**).
+6. Sentinel extracts compact runtime facts from the proposed response (and context).
 7. Deterministic checks evaluate those facts.
-8. Sentinel allows, warns, blocks, or rewrites the response.
+8. Sentinel allows, warns, blocks, or rewrites; **`/api/verify`** returns **`finalResponse`** for Botpress to send.
 9. Sentinel records an audit event with the source quote.
 
 ## Edge cases / fallbacks
 
-- If policy ingestion fails, use the preloaded Northstar Bank policy text.
+- If policy ingestion fails, use preloaded **Enterprise Procurement Agent Policy** text (and keep refund policy text available for fallback tests).
 - If graph generation fails, use cached graph JSON.
-- If Botpress integration fails, use a Botpress-style staged proposed-response panel while clearly explaining the intended verifier workflow.
+- If Botpress integration fails, use a Botpress-style staged proposed-response panel while clearly explaining the intended verifier workflow. **Do not remove Botpress visibility.**
 
 ## Validation rules
 
@@ -90,6 +95,7 @@ Core objects used by the product slice:
 - Runtime verification must not send the full policy document to the LLM.
 - Deterministic checks, not prompts alone, make the enforcement decision.
 - The implementation must remain achievable in the 5-hour hackathon window.
+- Frontend/Botpress must not treat candidate proposals as active until Sentinel validates activation; runtime decisions come from **`/api/verify`**.
 
 ## Dependencies
 
@@ -101,6 +107,6 @@ Core objects used by the product slice:
 ## Definition of done
 
 - All feature specs use the same product definition.
-- Every downstream file preserves "Prompting is not proof."
-- Every downstream file preserves the core vertical slice.
+- Every downstream file preserves "Prompting is not proof" and **Botpress agents propose; Sentinel validates; Botpress sends only verified output.**
+- Every downstream file preserves the core vertical slice (procurement primary).
 - No downstream file expands Sentinel into a broad compliance platform.

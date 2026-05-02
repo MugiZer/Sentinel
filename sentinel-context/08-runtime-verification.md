@@ -14,7 +14,7 @@ Hamza owns implementation for this file because it belongs to the Sentinel backe
 
 **Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
-Kaveh depends on this file only through `/api/verify`, API responses, and canonical types. Do not require Kaveh to understand internal fact extraction/evaluator implementation to build the UI/Botpress layer.
+Kaveh depends on this file only through `/api/verify`, API responses, and canonical types. Do not require Kaveh to understand internal fact extraction/evaluator implementation to build the frontend.
 
 ## Why it matters for the demo
 
@@ -24,7 +24,7 @@ Runtime verification is the moment the audience sees Sentinel enforce policy. It
 
 ### In scope
 
-- Proposed-response verification pipeline.
+- **Botpress Enterprise Procurement Agent** proposed-response verification pipeline.
 - Strict LLM JSON extraction or keyword fallback for compact fact extraction.
 - Known fact types from active checks.
 - Deterministic check execution.
@@ -47,10 +47,16 @@ Runtime verification is the moment the audience sees Sentinel enforce policy. It
 - Active `DeterministicCheck[]`.
 - Known fact keys derived from checks.
 
-Known demo fact keys:
+Known demo fact keys (procurement primary):
+
+- `action.commit_purchase`
+- `condition.manager_approval`
+- `condition.vendor_approved`
+- `action.share_payment_credentials`
+
+Known demo fact keys (fallback / extended):
 
 - `action.promise_refund`
-- `condition.manager_approval`
 - `action.request_full_credit_card`
 - `action.give_investment_advice`
 - `action.discuss_competitor_pricing`
@@ -78,28 +84,48 @@ type VerifyRequest = {
 
 type VerifyResponse = {
   result: "allowed" | "warned" | "blocked" | "rewritten"
-  finalResponse?: string
+  finalResponse: string
   facts: RuntimeFacts
   violations: string[]
+  reason: string
   auditEvent: AuditEvent
 }
 ```
 
 ## Main flow
 
-1. Botpress support agent drafts a response.
-2. Botpress verifier workflow sends proposed response to Sentinel.
+1. Botpress Enterprise Procurement Agent drafts a **proposed** response (`procurement.ts`).
+2. Botpress `verifyResponse` Action sends it to Sentinel `POST /api/verify`.
 3. Sentinel derives fact keys from active checks.
-4. `factExtractor.ts` performs strict JSON extraction with the proposed response and fact keys, or uses keyword fallback in demo mode.
+4. `factExtractor.ts` performs strict JSON extraction with the proposed response (and optionally user message hints), or uses keyword fallback in demo mode.
 5. Fact extractor returns `RuntimeFacts`; malformed LLM JSON is retried once, then fallback-detected.
 6. Missing facts default to false.
 7. `checkEvaluator.ts` runs all active deterministic checks.
-8. If any block check fails, original response is blocked.
-9. If safe rewrite is needed, return prewritten or generated safe response.
-10. `auditStore.ts` records the event with source quote.
-11. Botpress sends final response.
+8. If any block check fails, the unsafe proposed response is blocked.
+9. Return **`finalResponse`** from Sentinel (safe rewrite / escalation copy for demo).
+10. `auditStore.ts` records the event with source quote(s).
+11. Botpress sends **`finalResponse`**.
 
-Refund demo:
+Procurement demo facts (example):
+
+```json
+{
+  "action.commit_purchase": true,
+  "condition.manager_approval": false,
+  "condition.vendor_approved": false,
+  "action.share_payment_credentials": true
+}
+```
+
+Decision: **blocked** (multiple violations possible; surface primary + list).
+
+Safe `finalResponse` (illustrative; **must** originate from verifier logic / templates in code, not the UI):
+
+```txt
+I can prepare a purchase request for review, but I can't approve an $80,000 order, commit to an unapproved vendor, or share payment details without the required approvals.
+```
+
+Refund fallback demo:
 
 ```json
 {
@@ -108,9 +134,7 @@ Refund demo:
 }
 ```
 
-Decision: blocked.
-
-Safe rewrite:
+Safe rewrite (refund path):
 
 ```txt
 I can help submit a refund request, but manager approval is required before I can confirm it.
@@ -124,7 +148,7 @@ I can help submit a refund request, but manager approval is required before I ca
 - Keyword fallback may produce facts, but it must not directly produce allow/block decisions.
 - Multiple block checks fail -> block and show primary reason plus count.
 - No checks active -> allow, but show compile warning elsewhere.
-- Rewrite generation fails -> use prewritten safe rewrite for the refund scenario.
+- Rewrite generation fails -> use prewritten safe response for **procurement** primary path; keep **refund** prewritten copy for fallback tests.
 
 ## Validation rules
 
@@ -147,7 +171,7 @@ I can help submit a refund request, but manager approval is required before I ca
 ## Definition of done
 
 - Proposed response can be verified through `/api/verify`.
-- Refund demo facts are extracted.
+- **Procurement** demo facts are extracted and blocked deterministically with **source-grounded** audit.
 - Deterministic check blocks unsafe response.
 - Safe rewrite and audit event are returned.
 - Main refund demo still works if the LLM fact extractor is unavailable.

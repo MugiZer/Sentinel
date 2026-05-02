@@ -8,9 +8,15 @@ Practical contract reference so Botpress and the dashboard can integrate **witho
 |----------|--------|
 | `POST /api/verify` | Implemented — **only** runtime allow / warn / block authority. |
 | `GET /api/audit` | Implemented — in-memory audit list. |
-| `POST /api/policy/compile` | **Contract below** — route not present in this vertical slice yet; treat response as authoritative once the endpoint ships. |
+| `POST /api/policy/compile` | Implemented — parses policy text and/or validates Botpress candidate graph payloads; returns `documentId`, `sections`, `graph`, `checks`, `generatedBy`. |
 
-For copy-paste `curl` / PowerShell and expected fields for verify + audit, see **`BACKEND_TESTS.md`**.
+**Integration rules (read me):**
+
+- **Botpress/UI must not hardcode policy decisions** — no client-side allow/block based on heuristics or model guesswork for compliance outcomes.
+- **`/api/verify` is the runtime authority** — always call verify before delivering a `proposedResponse` to the user; use the response `finalResponse` when blocked or warned.
+- **Botpress agents propose; Sentinel validates** — compile proposes structure offline; verify enforces checks on each turn.
+
+For copy-paste `curl` / PowerShell and expected fields for verify + audit + compile, see **`BACKEND_TESTS.md`**.
 
 ---
 
@@ -43,6 +49,7 @@ For copy-paste `curl` / PowerShell and expected fields for verify + audit, see *
   "facts": { "fact_key": true | false },
   "violations": ["string"],
   "reason": "string",
+  "failedChecks": [{ "checkId": "string", "reason": "string", "violation": "string (optional)" }] (optional, when one or more checks fail),
   "auditEvent": { }
 }
 ```
@@ -92,7 +99,8 @@ Invoke-RestMethod -Uri "http://localhost:3002/api/verify" -Method Post -Body $bo
   "text": "string (optional)",
   "candidateSections": "PolicySection[] (optional)",
   "candidateOperations": "GraphOperation[] (optional)",
-  "generatedBy": "string (optional)"
+  "generatedBy": "string (optional, ignored by server — response `generatedBy` is authoritative)",
+  "strictQuotes": "boolean (optional)"
 }
 ```
 
@@ -104,9 +112,13 @@ Invoke-RestMethod -Uri "http://localhost:3002/api/verify" -Method Post -Body $bo
   "sections": "PolicySection[]",
   "graph": "PolicyGraph",
   "checks": "DeterministicCheck[]",
-  "generatedBy": "string"
+  "generatedBy": "string",
+  "compilationErrors": "string[] (optional)",
+  "validationErrors": "string[] (optional)"
 }
 ```
+
+`generatedBy` is a **single** pipeline token (for example `sentinel-path:text-with-demo-graph`, `sentinel-path:minimal-body-demo`, `sentinel-path:validated-candidate-compile`, or a `sentinel-fallback:*` label). `validationErrors` / `compilationErrors` appear when `generatedBy` starts with `sentinel-fallback`, or when the request includes **`?debug=1`**.
 
 **Integration rule:** Only **`sections`**, **`graph`**, **`checks`**, and metadata from this response (after success) define what downstream verify flows should rely on — not the raw candidate fields sent in.
 
@@ -135,11 +147,11 @@ Invoke-RestMethod -Uri "http://localhost:3002/api/verify" -Method Post -Body $bo
 
 - **`verifyResponse` action** → `POST /api/verify` with `proposedResponse` before user delivery.
 - **Support conversation** → send **`finalResponse`** from the verify response to the user.
-- **Policy compile workflow** → `POST /api/policy/compile` when the endpoint is available; never call `src/lib/sentinel/*` or internal modules.
+- **Policy compile workflow** → `POST /api/policy/compile`; never call `src/lib/sentinel/*` or internal modules.
 
 ### UI
 
-- **Policy panel** → consumes `POST /api/policy/compile` (when available).
+- **Policy panel** → consumes `POST /api/policy/compile`.
 - **Botpress panel** → show **`proposedResponse`** vs **`finalResponse`** for transparency.
 - **Audit log panel** → `GET /api/audit` and/or embed **`verifyResponse.auditEvent`** after each verify.
 - **No client-side allow/block** — decisions come only from verify (and compiled checks server-side).

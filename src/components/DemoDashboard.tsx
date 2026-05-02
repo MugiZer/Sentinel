@@ -272,13 +272,45 @@ export default function DemoDashboard() {
       <div className="sentinel-grid">
         <div className="sentinel-col">
           <div className="sentinel-actions">
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", width: "100%" }}>
+              <label className="sentinel-label" htmlFor="sentinel-policy-file">
+                Policy document (.pdf or .txt)
+              </label>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                <input
+                  id="sentinel-policy-file"
+                  ref={policyFileInputRef}
+                  type="file"
+                  accept=".pdf,.txt,application/pdf,text/plain"
+                  className="sentinel-input"
+                  style={{ maxWidth: "min(100%, 220px)" }}
+                  disabled={compiling || policyFileBusy}
+                  onChange={handlePolicyFileChange}
+                />
+                {policyFileName ? (
+                  <span className="sentinel-muted" style={{ fontSize: "0.82rem" }}>
+                    {policyFileName}
+                  </span>
+                ) : null}
+              </div>
+              {policyFileBusy ? (
+                <span className="sentinel-muted" style={{ fontSize: "0.78rem" }}>
+                  Extracting text from PDF…
+                </span>
+              ) : null}
+              {policyUploadError ? (
+                <p className="sentinel-muted" style={{ margin: 0, fontSize: "0.78rem", color: "var(--danger)" }}>
+                  {policyUploadError}
+                </p>
+              ) : null}
+            </div>
             <button
               type="button"
               className="sentinel-btn sentinel-btn-primary"
-              disabled={compiling}
+              disabled={compiling || policyFileBusy}
               onClick={() => void compilePolicy()}
             >
-              {compiling ? "Compiling…" : "Compile policy"}
+              {compiling ? "Compiling…" : "Run compile (API)"}
             </button>
             {compileError ? (
               <span className="sentinel-muted" style={{ color: "var(--danger)" }}>
@@ -286,7 +318,8 @@ export default function DemoDashboard() {
               </span>
             ) : !policyReady ? (
               <span className="sentinel-muted">
-                Compile policy to load sections, graph, and active checks from the API.
+                Run compile to load sections, graph, and checks (optional upload supplies policy{" "}
+                <code style={{ fontSize: "inherit" }}>text</code>).
               </span>
             ) : (
               <span className="sentinel-muted">

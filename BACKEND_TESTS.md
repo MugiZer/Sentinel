@@ -21,6 +21,15 @@ If you see **`EADDRINUSE`** on 3002, another process (often a previous `next dev
 
 The API base URL is `http://localhost:3002`.
 
+## Automated unit tests (Vitest)
+
+```bash
+npm install
+npm run test
+```
+
+These cover the deterministic core (`documentCatalog`, parsers, graph reducer/validator/compiler, fact extraction) without starting Next.js.
+
 ## 1. Blocked refund (Northstar demo)
 
 **Canonical `curl` (Git Bash / macOS / Linux):**
@@ -61,6 +70,7 @@ On **cmd.exe**, avoid inline JSON; use PowerShell or `-d @body.json`.
 - `auditEvent` exists; `auditEvent.result` is `"blocked"`
 - `auditEvent.proposedResponse` includes `"Sure, I can refund you today."`
 - `auditEvent.source.quote`: `"Agents must not promise or guarantee refunds unless manager approval has been granted."`
+- **`failedChecks`** includes the refund check with `checkId` `check.refund_requires_approval` (additive array for multi-failure auditing)
 
 ## 2. Block unsafe payment credential solicitation (Northstar demo)
 
@@ -83,6 +93,7 @@ Invoke-RestMethod -Uri "http://localhost:3002/api/verify" -Method Post -Body $bo
 - `violations` includes `"violation.payment_credentials_requested"`
 - `facts["action.request_payment_credentials"]` is `true`
 - `auditEvent.source.quote` matches the Customer Data & Payments fixture quote
+- **`failedChecks`** includes `check.no_payment_credentials` with the policy `reason`
 
 ## 3. Allowed neutral response
 
@@ -230,5 +241,7 @@ Malformed proposals return the cached deterministic graph/checks with `generated
 
 - **`/api/verify` never reads raw policy blobs** — it consumes keyword facts extracted from each turn plus client-supplied or demo deterministic checks compiled elsewhere.
 - **Optional `checks` on `/api/verify`** must retain `source.quote` on every supplied check or the route responds `400` before evaluation.
-- **`CompilePolicyRequest` / `CompilePolicyResponse`** in `src/lib/sentinel/types.ts` now include `candidateSections`, `candidateOperations`, `generatedBy`, and the shared `GraphOperation` union that powers the reducer.
-- **Parser `documentName` semantics:** When the title matches the canonical Northstar manual, section ids stay `refunds`, `sensitive_payment_info`, etc. Any other document name still reads the same heading labels, but ids are namespaced (for example `acme_corp__refunds`) so multi-document demos never collide.
+- **`CompilePolicyRequest` / `CompilePolicyResponse`** now include `candidateSections`, `candidateOperations`, `generatedBy`, optional **`strictQuotes`** (forces wired graph nodes to cite their own quotes), and **`validationErrors` / `compilationErrors`** when `generatedBy` contains `sentinel-fallback` **or** callers append `?debug=1`.
+- **Parser `documentName` semantics:** When the title matches the canonical Northstar manual, section ids stay `refunds`, `sensitive_payment_info`, etc. Other titles keep headings but namespace ids (for example `acme_corp__refunds`).
+- **Multi-failure verification:** `failedChecks` mirrors every failed deterministic check (sorted in evaluation order); `reason` / `auditEvent` still reflect the single worst-severity driver for compatibility.
+- **Catalog metadata:** Canonical Northstar titles plus slugs live in `src/lib/sentinel/documentCatalog.ts`; fixtures re-export the title for legacy imports.

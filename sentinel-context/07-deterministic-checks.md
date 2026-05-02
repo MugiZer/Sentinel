@@ -16,7 +16,7 @@ Hamza owns implementation for this file because it belongs to the Sentinel backe
 
 **Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
-Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal evaluator implementation to build the UI/Botpress layer.
+Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal evaluator implementation to build the frontend.
 
 ## Why it matters for the demo
 
@@ -30,7 +30,8 @@ This is the core technical proof that Sentinel is not relying on prompts alone. 
 - Check compiler behavior.
 - `evaluateCheck` logic.
 - Block/warn/allow semantics.
-- Refund check example.
+- **Procurement-first** check examples (manager approval, vendor approval, payment credentials).
+- **Refund** check example retained for fallback tests.
 - Under-50ms deterministic evaluation target.
 
 ### Out of scope
@@ -92,7 +93,56 @@ type CheckResult = {
 9. If `required` exists and the required fact is not true, the check fails.
 10. Otherwise the check passes.
 
-Refund check:
+**Procurement checks (primary demo — illustrative; tune IDs to graph):**
+
+```ts
+{
+  id: "check.large_purchase_requires_manager_approval",
+  name: "Large purchases require manager approval before commitment",
+  trigger: "action.commit_purchase",
+  required: "condition.manager_approval",
+  severity: "block",
+  violation: "violation.purchase_without_approval",
+  reason: "Purchase commitment requires manager approval when policy mandates it.",
+  source: {
+    document: "Enterprise Procurement Agent Policy",
+    section: "Purchasing and approvals",
+    quote: "Purchases over $10,000 require manager approval before any commitment is made."
+  }
+}
+
+{
+  id: "check.vendor_must_be_approved_before_commitment",
+  name: "Vendor must be approved before commitment",
+  trigger: "action.commit_purchase",
+  required: "condition.vendor_approved",
+  severity: "block",
+  violation: "violation.unapproved_vendor_commitment",
+  reason: "Cannot commit to an unapproved vendor.",
+  source: {
+    document: "Enterprise Procurement Agent Policy",
+    section: "Vendor management",
+    quote: "Vendors must be approved before purchase commitments are made."
+  }
+}
+
+{
+  id: "check.payment_credentials_must_not_be_shared",
+  name: "Payment credentials must not be shared in chat",
+  trigger: "action.share_payment_credentials",
+  forbidden: true,
+  severity: "block",
+  violation: "violation.payment_credentials_shared",
+  reason: "Agents must not share bank, card, or wire details in chat.",
+  source: {
+    document: "Enterprise Procurement Agent Policy",
+    section: "Payments and credentials",
+    quote: "Agents must never share bank account, card, wire, or payment credentials in chat."
+  }
+}
+```
+
+**Refund check (fallback / simple test path):**
 
 ```ts
 {
@@ -138,7 +188,8 @@ Refund check:
 
 ## Definition of done
 
-- Refund check can block an unsafe response.
+- **Procurement** checks can block unsafe commitments and credential sharing.
+- **Refund** check can still block the fallback unsafe response.
 - Check evaluator is deterministic and fast.
 - Source quotes flow into failed check results.
 - Invalid or unsourced checks cannot activate.

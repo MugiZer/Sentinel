@@ -16,7 +16,7 @@ Hamza owns implementation for this file because it belongs to the Sentinel backe
 
 **Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
-Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal ingestion implementation to build the UI/Botpress layer.
+Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal ingestion implementation to build the frontend.
 
 ## Why it matters for the demo
 
@@ -26,8 +26,16 @@ The demo begins with a company policy document. The system must make that docume
 
 ### In scope
 
-- Preloaded Northstar Bank policy fixture.
+- Preloaded **Enterprise Procurement Agent Policy** fixture (primary).
+- Preloaded **Northstar** / refund-oriented fixture for **fallback** tests.
 - Textarea/text upload path.
+- Best-effort PDF text extraction using an existing package.
+- Fallback to preloaded text.
+- Compile-time extraction only.
+- Preserving raw section text for source quotes.
+- Policy document name and plain text passed into parsing/indexing.
+
+### Out of scope
 - Best-effort PDF text extraction using an existing package.
 - Fallback to preloaded text.
 - Compile-time extraction only.
@@ -47,11 +55,18 @@ The demo begins with a company policy document. The system must make that docume
 
 ## Inputs
 
-- `documentName`: `Northstar Bank AI Agent Compliance Manual`.
+- `documentName`: primary **`Enterprise Procurement Agent Policy`**; fallback **`Northstar Bank AI Agent Compliance Manual`** (refund drills).
 - Preloaded policy text, pasted textarea text, uploaded `.txt` text, or best-effort PDF-derived text.
 - Optional uploaded PDF file.
 
-Recommended demo policy sections:
+Recommended demo policy sections (procurement primary):
+
+- Purchasing thresholds and manager approval.
+- Vendor approval / vendor list rules.
+- Payments, wire transfers, and credential handling in chat.
+- Urgent purchase / draft-only behavior.
+
+Recommended demo policy sections (fallback / Northstar):
 
 - Refunds and Reimbursements.
 - Sensitive Payment Information.
@@ -86,21 +101,21 @@ If the UI supports file upload, file-derived text should be extracted before cal
 
 ## Main flow
 
-1. User selects preloaded Northstar Bank policy, pastes policy text into a textarea, or uploads a simple text/PDF file.
+1. User selects preloaded **Enterprise Procurement** policy, pastes policy text into a textarea, or uploads a simple text/PDF file.
 2. If text is provided, use it directly.
 3. If a text file is uploaded, read it as plain text.
 4. If a PDF is uploaded, use an existing library for best-effort text extraction.
-5. If extraction fails or text is empty, fallback to preloaded Northstar Bank policy.
+5. If extraction fails or text is empty, fallback to preloaded **Enterprise Procurement** policy (or **Northstar** policy for refund-only drill).
 6. Normalize plain text lightly.
 7. Pass plain text into policy parsing/document indexing.
 
 ## Edge cases / fallbacks
 
-- PDF parsing fails -> preloaded policy.
+- PDF parsing fails -> preloaded **Enterprise Procurement** text (or cached compile).
 - PDF is scanned/image-only -> preloaded policy; OCR is out of scope.
-- Empty upload -> preloaded policy selector.
+- Empty upload -> preloaded policy selector (**procurement** default).
 - Weird formatting -> simple text normalization and known section headers.
-- Section detection is weak -> use known Northstar section headers.
+- Section detection is weak -> use known **procurement** or **Northstar** section maps depending on active fixture.
 - Compile step times out -> use cached compile output.
 
 ## Validation rules
@@ -121,7 +136,7 @@ If the UI supports file upload, file-derived text should be extracted before cal
 
 ## Definition of done
 
-- User can load policy text through preloaded fixture, textarea/text upload, or best-effort PDF extraction.
-- Empty or failed extraction falls back to Northstar policy.
+- User can load policy text through preloaded fixture (**procurement** primary), textarea/text upload, or best-effort PDF extraction.
+- Empty or failed extraction falls back to procurement preloaded text (or Northstar for refund drills).
 - Compile pipeline receives non-empty plain text.
 - No runtime path reads the full policy document or PDF.

@@ -8,8 +8,9 @@ import type {
   SourceQuote,
 } from "./types";
 
-export const NORTHSTAR_DOCUMENT_NAME =
-  "Northstar Bank AI Agent Compliance Manual" as const;
+import { NORTHSTAR_DOCUMENT_NAME } from "./documentCatalog";
+
+export { NORTHSTAR_DOCUMENT_NAME };
 
 export const northstarRefundPolicyQuote: SourceQuote = {
   document: NORTHSTAR_DOCUMENT_NAME,

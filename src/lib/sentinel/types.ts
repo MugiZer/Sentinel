@@ -91,6 +91,13 @@ export type VerifyRequest = {
   checks?: DeterministicCheck[];
 };
 
+/** Per-check failure summary when one or more deterministic checks did not pass (additive audit surface). */
+export type VerifyFailedCheckSummary = {
+  checkId: string;
+  reason: string;
+  violation?: string;
+};
+
 /** API verify result — `reason` is populated when a check fails or for explicit audit clarity */
 export type VerifyResponse = {
   result: "allowed" | "warned" | "blocked" | "rewritten";
@@ -99,6 +106,8 @@ export type VerifyResponse = {
   violations: string[];
   /** Human-readable primary outcome; required when `result` is blocked/warned/rewritten for this slice */
   reason?: string;
+  /** Present when at least one check failed; ordered by evaluation sequence. */
+  failedChecks?: VerifyFailedCheckSummary[];
   auditEvent: AuditEvent;
 };
 
@@ -110,6 +119,11 @@ export type CompilePolicyRequest = {
   candidateOperations?: GraphOperation[];
   /** E.g. `botpress-policy-workflow` \| `sentinel-local` \| `cached-demo`. */
   generatedBy?: string;
+  /**
+   * When true, every graph node that participates in an edge must carry its own validated
+   * `source` quote (edge-only citation is insufficient).
+   */
+  strictQuotes?: boolean;
 };
 
 export type CompilePolicyResponse = {
@@ -119,6 +133,13 @@ export type CompilePolicyResponse = {
   checks: DeterministicCheck[];
   /** Describes which pipeline produced the artifact (often includes Sentinel path hints). */
   generatedBy: string;
+  /**
+   * Populated when `generatedBy` indicates a fallback compile, or when `?debug=1` is set on the request.
+   * Omitted on the default happy path to keep payloads small.
+   */
+  validationErrors?: string[];
+  /** Compiler failures (or post-compile filter errors) — same visibility rules as `validationErrors`. */
+  compilationErrors?: string[];
 };
 
 export type AuditListResponse = {

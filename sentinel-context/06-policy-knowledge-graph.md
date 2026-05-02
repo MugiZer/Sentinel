@@ -18,7 +18,7 @@ Hamza owns implementation for this file because it belongs to the Sentinel backe
 
 **Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
-Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal graph compilation implementation to build the UI/Botpress layer.
+Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal graph compilation implementation to build the frontend.
 
 ## Why it matters for the demo
 
@@ -121,7 +121,21 @@ const MAX_CHECKS = 10
 7. Check compiler turns enforceable graph relations into checks.
 8. Active graph/checks are published only after validation passes.
 
-Primary refund demo path:
+**Primary procurement demo path (Enterprise Procurement Agent Policy):**
+
+- `action.commit_purchase`
+- `condition.manager_approval`
+- `condition.vendor_approved`
+- `action.share_payment_credentials`
+- `violation.purchase_without_approval`
+- `violation.unapproved_vendor_commitment`
+- `violation.payment_credentials_shared`
+- Example edges/check IDs (illustrative IDs—implementations normalize in `12-data-models.md`):
+  - Large purchase requires manager approval before commitment.
+  - Vendor must be approved before commitment.
+  - Payment / wire / card credentials must not be shared in chat.
+
+**Fallback / simple test path (refund):**
 
 - `action.promise_refund`
 - `condition.manager_approval`
@@ -129,13 +143,11 @@ Primary refund demo path:
 - `edge.refund_requires_approval`
 - `edge.refund_violates_if_missing_approval`
 
-Suggested compact policy constraints:
+Suggested compact policy constraints (mix as needed for demo depth):
 
-- Refund promises require manager approval.
-- Requesting full credit card numbers or CVV codes is forbidden.
-- Investment advice is forbidden or escalated.
-- Legal threats require escalation to a human manager.
-- Competitor pricing discussion warns or blocks depending on policy wording.
+- **Procurement:** manager approval for purchases over threshold; approved vendor list; never share payment credentials in chat; no order confirmation without approval.
+- **Fallback:** Refund promises require manager approval.
+- Optional extras: sensitive payment info, investment advice, escalation triggers (keep scope small).
 
 Anti-friction rules:
 
@@ -176,7 +188,7 @@ Anti-friction rules:
 
 ## Definition of done
 
-- Refund policy graph can be represented as the primary demo path.
+- **Procurement** policy graph is the primary demo path; **refund** graph remains a documented fallback.
 - Compact graph supports 3-5 enforceable constraints.
 - Graph can be validated.
 - Graph can be visualized in the demo.

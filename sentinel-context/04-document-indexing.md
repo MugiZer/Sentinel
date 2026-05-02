@@ -16,7 +16,7 @@ Hamza owns implementation for this file because it belongs to the Sentinel backe
 
 **Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
-Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal indexing implementation to build the UI/Botpress layer.
+Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal indexing implementation to build the frontend.
 
 ## Why it matters for the demo
 
@@ -50,7 +50,8 @@ The document index lets Sentinel show that constraints came from concrete policy
 
 - Plain policy text from ingestion.
 - Document name.
-- Known Northstar section headers.
+- Known **Enterprise Procurement Agent Policy** section headers (primary).
+- Known **Northstar** section headers (fallback drills).
 - Simple inferred section headings when known headers are unavailable.
 
 ## Outputs
@@ -73,7 +74,14 @@ type PolicySection = {
 }
 ```
 
-Stable section IDs:
+Stable section IDs (procurement primary):
+
+- `purchasing_thresholds`
+- `vendor_approval`
+- `payments_and_credentials`
+- `urgent_purchases`
+
+Stable section IDs (fallback / Northstar):
 
 - `refunds`
 - `sensitive_payment_info`
@@ -84,7 +92,7 @@ Stable section IDs:
 ## Main flow
 
 1. Receive plain policy text.
-2. Try known Northstar policy section headers first.
+2. Try known **Enterprise Procurement** policy section headers first; if demo uses Northstar refund fixture, try those headers instead.
 3. If known headers are not found, use simple heading splitting.
 4. Normalize section IDs deterministically.
 5. Preserve section text for source quote matching.
@@ -94,12 +102,12 @@ Stable section IDs:
 
 ## Edge cases / fallbacks
 
-- Missing headings -> fallback to known Northstar section map.
+- Missing headings -> fallback to known **Enterprise Procurement** or **Northstar** section map depending on active fixture.
 - Duplicate headings -> append stable suffix.
 - Non-policy section -> `containsPolicyLogic = false`.
 - Page missing -> omit `page` but preserve section and quote.
 - Messy PDF text -> normalize whitespace but preserve enough text for quote matching.
-- Bad heading detection -> use hardcoded Northstar section map.
+- Bad heading detection -> use hardcoded **Enterprise Procurement** or **Northstar** section map depending on active fixture.
 
 ## Validation rules
 
@@ -119,7 +127,7 @@ Stable section IDs:
 
 ## Definition of done
 
-- Northstar policy sections are indexed into real `PolicySection[]` objects.
+- **Enterprise Procurement** policy sections index into real `PolicySection[]` objects for the primary demo; Northstar map remains for refund fallback drills.
 - Section IDs are stable and usable by graph operations.
 - Policy-relevant sections are marked correctly.
 - Source text is preserved for quote validation.

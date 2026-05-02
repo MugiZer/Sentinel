@@ -2,66 +2,77 @@
 
 ## Purpose
 
-Define the one-page Sentinel hackathon demo UI optimized for judging at the Montreal Cursor Hackathon (Botpress). **Botpress ADK use (~25% of score) must be visible, obvious, and impressive.** Surface-only API reads score lower—the ADK workflow (compile-time policy agents + runtime support agent + verification action) stays **on-screen**, not implied.
+Define the **one-page Sentinel hackathon demo UI**: a **premium, judge-ready enterprise control room** for **Botpress agent verification**. Botpress ADK use must be **visible in the first ~30 seconds** (workflow, conversations, actions). Surface-only API reads score lower—the ADK workflow (compile-time policy agents + runtime procurement agent + verification **Action**) stays **on-screen**, not implied.
 
-Source sections: 5, 14, 17.
-
-## Header copy
-
-**Header:**
-
-```txt
-Sentinel: Botpress-native policy verification for enterprise agents
-```
-
-**Subtitle:**
-
-```txt
-Botpress agents propose policy structure and customer responses. Sentinel validates and enforces before anything reaches the user.
-```
-
-**Core thesis badge (visible on the page):**
-
-```txt
-Prompting is not proof. Verification is.
-```
-
-**Pipeline thesis (compile + runtime, exact string):**
+**Core UI sentence:**
 
 ```txt
 Botpress agents propose. Sentinel validates. Botpress sends only verified output.
 ```
 
-Do not present a generic compliance admin dashboard. Story the product as **Botpress-native multi-agent governance**: agents propose structure and drafts; Sentinel is the authority for activation and allow/block/rewrite.
+**Header**
+
+```txt
+Sentinel
+```
+
+**Subtitle**
+
+```txt
+Policy firewall for Botpress enterprise agents.
+```
+
+**Supporting copy**
+
+```txt
+Botpress agents propose business actions. Sentinel verifies them before they are sent or executed.
+```
+
+**Badges (chip row):**
+
+- Botpress ADK Workflow
+- Runtime Verification
+- Deterministic Checks
+- Source-Grounded Audit
+
+**Design goal:** Premium **dark** enterprise control room—**Linear**, **Raycast**, **Vercel dashboard**, and **security operations console** inspiration—not a generic admin template.
+
+**Aesthetic guardrails:**
+
+- Dark background
+- Glassy cards, subtle translucent borders, soft shadows
+- Strong typography hierarchy
+- **Red** only for blocked / danger
+- **Green / blue** only for success / active (sparingly)
+- No rainbow accents; no cluttered chrome
+- **No complex navigation**—single scroll story
+
+Source sections: 5, 14, 17.
 
 ## Builder ownership
 
-**Primary owner:** Kaveh (Builder 1)
+**Builder 1 — Kaveh** owns the Sentinel **Next.js** dashboard UI and demo composition.
 
-Kaveh owns implementation for this file because it belongs to the Botpress ADK / UI / demo surface.
-
-**Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not modify Botpress/UI flow directly during the hackathon unless both builders agree.
+**Builder 2 — Hamza** owns backend responses; must not own dashboard layout unless both agree.
 
 ## Why it matters for the demo
 
-Judges must understand the **full ADK-mediated flow in under ~30 seconds** from one scrollable page:
+Judges must understand the **full ADK-mediated flow** quickly:
 
 ```txt
-Policy Document
-→ Botpress Policy Indexing Agent
-→ Botpress Policy Graph Builder Agent
-→ Sentinel Reducer + Validator
-→ Deterministic Checks Activated
-→ Botpress Support Agent Drafts Response
-→ Sentinel POST /api/verify
-→ BLOCKED before sending
-→ Safe final response sent by Botpress
-→ Audit log with source quote visible
+Enterprise Procurement Agent Policy
+→ Botpress policyCompile (policyIndexingAgent → policyGraphBuilderAgent → activateCompiledPolicy → Sentinel /api/policy/compile)
+→ Deterministic checks activated
+→ Botpress procurement.ts drafts proposed response — NOT sent
+→ verifyResponse → POST /api/verify
+→ BLOCKED BEFORE EXECUTION (API-driven)
+→ finalResponse from Sentinel; Botpress sends only verified output
+→ Audit trail with source quotes visible (no extra click)
 ```
 
-**Core UI thesis:** Botpress agents propose. Sentinel validates. Botpress sends only verified output.
-
 ## Backend dependency rules
+
+**Backend base:** `http://localhost:3002` (use `NEXT_PUBLIC_SENTINEL_API_URL` when UI and API differ; **`apiClient` default fallback** `http://localhost:3002`).
 
 The UI consumes:
 
@@ -71,120 +82,83 @@ The UI consumes:
 
 The UI must not:
 
-- compute allow/block/rewrite decisions itself
-- fabricate source quotes
-- mark a response **BLOCKED** (or equivalent) **without** a real `/api/verify` response driving that state
-- treat Botpress candidate graph operations as **active** unless Sentinel has validated and activated them (UI reflects backend/Sentinel truth)
+1. Compute allow/block/rewrite decisions locally
+2. Fabricate source quotes
+3. Show **BLOCKED** / blocked state **without** a real `POST /api/verify` response driving it
+4. Treat Botpress **candidate** graph operations as **active** unless Sentinel has validated/activated them
 
-Temporary fixtures are allowed during development; **final demo mode** must call real backend endpoints.
+**Page behavior**
 
-The UI may display shapes from Hamza’s contracts (e.g. `CompilePolicyResponse`, `VerifyResponse`, `AuditEvent[]`) but must not invent compliance outcomes.
+1. Page loads even if the backend is unavailable (graceful empty/placeholder state).
+2. Empty/demo placeholders are allowed initially.
+3. **Verify with Sentinel** must call **real** `POST /api/verify`.
+4. **Compile policy** / run compile workflow control must call **real** `POST /api/policy/compile` (or the same endpoint the ADK `activateCompiledPolicy` uses—keep one contract).
+5. Audit panel should show **`verifyResponse.auditEvent` immediately** after verify.
+6. Optional refresh: `GET /api/audit`.
+7. Loading states must be visible.
+8. Error states must be elegant (no scary stack traces as primary UI).
+9. No ugly JSON dumps as primary UI (optional collapsed debug only).
+10. UI must not hardcode block/allow decisions.
+11. UI must not fabricate source quotes.
+12. UI must not treat Botpress proposals as **sent** or **active policy** unless Sentinel says so.
 
-## Optimizing for Botpress ADK Judging
+## Updated dashboard panels (top → bottom)
 
-To score high on Botpress ADK use, the demo must **visibly** show:
+### Panel 1 — Hero + ADK primitives
 
-1. **Botpress compile-time workflow:** `policyCompile`
-2. **Botpress compile-time agents/actions:** `policyIndexingAgent`, `policyGraphBuilderAgent`, `activateCompiledPolicy`
-3. **Botpress runtime agent:** `support.ts` Conversation (Northstar / support scenario)
-4. **Botpress runtime verification action:** `verifyResponse`
-5. **Sentinel as authority:** reducer/validator activates graph/checks; **`/api/verify`** decides allow/block/rewrite
+Components: **`HeroHeader.tsx`** + **`AdkPrimitivesCard.tsx`**.
 
-Judges should not see “a generic chatbot.” Judges should see a **Botpress-native multi-agent governance workflow** with Sentinel as deterministic enforcement between proposal and send.
+- Title, subtitle, thesis, badges (see **Header copy** above).
+- **ADK primitives card** must list:
 
-## Visual priorities
+**Runtime**
 
-- Botpress ADK usage must be visible in the **first 30 seconds** (workflow names, conversation file, actions on-screen).
-- The **blocked** result must be **visually obvious** (high-contrast badge/state before any “sent” message).
-- The **source quote** must be visible **without** opening a modal or deep drill-down.
-- The UI must show **both** compile-time and runtime Botpress agents—not one hidden “behind the scenes.”
-- A judge should be able to point at the screen and say: “This part is Botpress.” “This part is Sentinel validation.” “This part is deterministic enforcement.”
-- Avoid complex navigation; avoid an admin-dashboard feel; avoid burying the pipeline behind tabs.
-- Prefer **one page**, **stage-based storytelling** (pipeline + audit + compact ADK sidebar).
+- Conversation: `procurement.ts`
+- Action: `verifyResponse`
 
-## Layout: one-page dashboard with two Botpress zones
-
-Structure the page around **two visible Botpress zones**:
-
-1. **Compile-Time Botpress Policy Agents**
-2. **Runtime Botpress Support Agent**
-
-Plus **policy graph/checks**, **audit**, and a compact **ADK primitives** sidebar/card.
-
-Suggested column plan: **main column** = Panels 1–4 in order (story top-to-bottom). **Sidebar (or anchored card)** = Panel 5. On narrow viewports stack Panel 5 under Panel 4 but keep it visible without a separate “integrations” submenu.
-
----
-
-### Panel 1 — Compile-Time Botpress Agents
-
-**Title:** `Compile-Time Botpress Policy Agents`
-
-**Microcopy (compile panel):**
-
-```txt
-At compile time, Botpress policy agents inspect the document and propose structured policy operations.
-```
-
-Show a **horizontal or vertical pipeline** with explicit stages:
-
-```txt
-Policy Document
-→ Botpress Policy Indexing Agent
-→ Botpress Policy Graph Builder Agent
-→ Sentinel Reducer + Validator
-→ Deterministic Checks Activated
-```
-
-**Status badges per stage:** `pending` | `running` | `completed` | `validated` | `activated` (map backend events to these; badges animate or update during “Run Botpress Policy Compile Workflow”).
-
-**Visible ADK labels on this panel:**
+**Compile time**
 
 - Workflow: `policyCompile`
 - Action: `policyIndexingAgent`
 - Action: `policyGraphBuilderAgent`
 - Action: `activateCompiledPolicy`
 
-**Example Botpress outputs (illustrative; live UI binds to `/api/policy/compile` stream or final payload):**
+This panel must answer “what is Botpress doing here?” **within 30 seconds**.
 
-*Policy Indexing Agent output — `PolicySection[]`:*
+### Panel 2 — Compile-time Botpress policy agents
 
-- Refunds and Reimbursements
-- Sensitive Payment Information
-- Investment Advice
-- Escalation Requirements
+Component: **`CompileWorkflowPanel.tsx`**.
 
-*Policy Graph Builder Agent output — `GraphOperation[]`:*
+**Title:** Compile-time Botpress policy agents
 
-- `ADD_NODE` `action.promise_refund`
-- `ADD_NODE` `condition.manager_approval`
-- `ADD_NODE` `violation.refund_without_approval`
-- `ADD_EDGE` `edge.refund_requires_approval`
-- `MARK_SECTION_PROCESSED` `refunds`
-
-**Sentinel validation row (after graph builder, still in this panel or directly under it):**
-
-- source quote matched  
-- edge references valid  
-- check compiled  
-- active check enabled  
-
-**Validator microcopy:**
+**Pipeline (exact stages):**
 
 ```txt
-Sentinel does not trust agent output blindly. The reducer applies operations, validators check source quotes and graph references, and only valid checks become active.
+Policy Document → Botpress Policy Indexing Agent → Botpress Policy Graph Builder Agent → Sentinel Reducer + Validator → Deterministic Checks Activated
 ```
 
-**Exact UI copy (prominent in or under Panel 1):**
+**Statuses per stage:** `pending` | `running` | `completed` | `validated` | `activated`
+
+**Visible ADK labels:**
+
+- Workflow: `policyCompile`
+- Action: `policyIndexingAgent`
+- Action: `policyGraphBuilderAgent`
+- Action: `activateCompiledPolicy`
+
+Show example `PolicySection[]` and `GraphOperation[]` (live or demo placeholders) that bind to API results—mark **candidate** vs **activated** honestly.
+
+**Microcopy:**
 
 ```txt
-Botpress agents propose. Sentinel validates.
+Sentinel does not trust agent output blindly. The reducer applies operations; validators enforce sources and references; only valid checks become active.
 ```
 
----
+CTA (align with judging language): **`Run Botpress Policy Compile Workflow`** (triggers real compile path / mirrors ADK run).
 
-### Panel 2 — Policy Graph + Activated Checks
+### Panel 3 — Policy graph + active checks
 
-**Title:** `Policy Graph + Deterministic Checks`
+Component: **`PolicyGraphPanel.tsx`**.
 
 **Copy:**
 
@@ -192,184 +166,134 @@ Botpress agents propose. Sentinel validates.
 The graph is what the policy means. The checks are what runtime enforces.
 ```
 
-Show:
+**Nodes (procurement primary):**
 
-- **Graph nodes** and **edges** (list or simple visualization).
-- **Active checks** (post-Sentinel activation only).
-- **Source quote badges** on nodes/checks where the contract provides them.
-
-**Core graph elements (refund slice):**
-
-- `action.promise_refund`
+- `action.commit_purchase`
 - `condition.manager_approval`
-- `violation.refund_without_approval`
-- `edge.refund_requires_approval`
-- `check.refund_requires_approval`
+- `condition.vendor_approved`
+- `action.share_payment_credentials`
+- `violation.purchase_without_approval`
+- `violation.unapproved_vendor_commitment` (or compact label: unapproved vendor commitment)
+- `violation.payment_credentials_shared`
 
-Frame the graph as a **visible semantic proof layer** (grounded structure + enforcement), not decoration.
+**Checks (human-readable):**
 
----
+- Large purchase requires manager approval
+- Vendor must be approved before commitment
+- Payment credentials must not be shared
 
-### Panel 3 — Runtime Botpress Support Agent
+Frame as **semantic proof**, not decoration.
 
-**Title:** `Runtime Botpress Support Agent`
+### Panel 4 — Runtime Botpress procurement agent
 
-**Runtime panel microcopy:**
+Component: **`RuntimeVerificationPanel.tsx`** (+ optional **`VerificationResult.tsx`** inline).
 
-```txt
-The Botpress support agent drafts a response, but it is not sent until Sentinel verifies it.
-```
-
-Show the **actual runtime flow** with labels:
-
-**Customer:**
+**Employee request:**
 
 ```txt
-I'm angry. Refund me right now.
+Buy 20 GPU servers from this new vendor today. Tell them we approve the $80,000 order and send our wire details.
 ```
 
-**Botpress Support Agent proposed response:**
+**Botpress proposed:**
 
 ```txt
-Sure, I can refund you today.
+Approved. I'll confirm the $80,000 GPU server order with the vendor today and include our wire details.
 ```
 
-**Label on proposed text (required):**
+**Required label on proposed text:**
 
 ```txt
 Botpress proposed response — not sent yet
 ```
 
-Then **Sentinel Verification:**
+**Button:** **Verify with Sentinel** → `POST /api/verify`
 
-- State driven **only** by `/api/verify` (no UI-side hardcoded BLOCK for demo credibility).
-- Display copy:
+**On block:** show **BLOCKED BEFORE EXECUTION** (or equivalent **API-driven** copy when `result === "blocked"`).
 
-```txt
-BLOCKED before sending
-```
+**Final response:** display **`finalResponse`** from backend only.
 
-**Final Botpress response (after verifier):**
+**Provenance labels:**
 
-```txt
-I can help submit a refund request, but manager approval is required before I can confirm it.
-```
-
-**Label on final text:**
-
-```txt
-Verified final response sent by Botpress
-```
-
-**ADK / API provenance (visible on this panel):**
-
-- ADK Conversation: `support.ts`
+- ADK Conversation: `procurement.ts`
 - ADK Action: `verifyResponse`
-- API called: `POST /api/verify`
+- API: `POST /api/verify`
 
-**Important:** The UI must **not** hardcode the compliance decision. The **BLOCKED** (or `blocked`) state and `finalResponse` come from the real `/api/verify` response.
+### Panel 5 — Source-grounded audit trail
 
----
+Component: **`AuditTrailPanel.tsx`**.
 
-### Panel 4 — Source-Grounded Audit Log
+Show **without requiring a click** for the quote:
 
-**Title:** `Source-Grounded Audit Trail`
+- Result badge (blocked / allowed / warned / rewritten)
+- `agentName`
+- `proposedResponse`
+- `finalResponse`
+- **Facts** (compact; booleans as returned)
+- **Violations**
+- **Reason**
+- **`source.section`**
+- **`source.quote`** (full string, prominent)
+- Decision engine: **Sentinel deterministic evaluator**
+- ADK action: **verifyResponse**
 
-**Audit panel microcopy:**
+Populate immediately from **`verifyResponse.auditEvent`**; optionally merge with `GET /api/audit`.
 
-```txt
-Every blocked response is tied back to the exact policy quote that caused the decision.
-```
+## React implementation artifacts
 
-Show a row (or top entry) with **no extra click** for the quote:
+Exact files/components for the Next app (spec only—**do not implement in this context task**):
 
-- **Result badge:** `BLOCKED`
-- **Runtime agent:** Botpress Northstar Support Agent
-- **Proposed response** (text)
-- **Final response** (text)
-- **Detected facts:** e.g. `action.promise_refund = true`, `condition.manager_approval = false`
-- **Triggered check:** `check.refund_requires_approval`
-- **Violation:** `violation.refund_without_approval`
-- **Reason:** Refund promise requires manager approval.
-- **Source section:** Refunds and Reimbursements
-- **Source quote (full visibility, inline):**
+| Path | Role |
+| --- | --- |
+| `src/app/page.tsx` | Main one-page dashboard; owns high-level state and demo flow; renders all major panels; calls backend through `apiClient`; **does not** compute allow/block decisions. |
+| `src/components/HeroHeader.tsx` | Premium header: title, subtitle, thesis, badges. |
+| `src/components/AdkPrimitivesCard.tsx` | Lists runtime + compile-time ADK primitives (see Panel 1). |
+| `src/components/CompileWorkflowPanel.tsx` | Compile-time pipeline UI, statuses, example `PolicySection[]` / `GraphOperation[]`. |
+| `src/components/PolicyGraphPanel.tsx` | Compact procurement graph + active checks. |
+| `src/components/RuntimeVerificationPanel.tsx` | Procurement scenario, proposed response label, Verify button → `POST /api/verify`, blocked state, `finalResponse`. |
+| `src/components/AuditTrailPanel.tsx` | Audit evidence; **quote visible** without click. |
+| `src/components/VerificationResult.tsx` | Compact blocked/allowed/warned/rewritten; `finalResponse`; `reason`; `violations`. |
+| `src/components/StatusBadge.tsx` | Reusable badge: pending / running / completed / blocked / validated / activated. |
+| `src/components/GlassCard.tsx` | Reusable premium card: dark surface, subtle border, soft shadow. |
+| `src/lib/apiClient.ts` | `compilePolicy(payload)`, `verifyResponse(payload)`, `getAuditEvents()`; relative URLs or `NEXT_PUBLIC_SENTINEL_API_URL` with fallback `http://localhost:3002`; **no policy decisions**. |
+| `src/lib/demoContent.ts` | Fixed demo copy: procurement policy text, user request, proposed response, **fallback refund** scenario strings, labels/microcopy—**no compliance decisions**. |
+| `src/components/DebugJsonPanel.tsx` (optional) | Expandable raw JSON only—not primary UI. |
 
-```txt
-Agents must not promise or guarantee refunds unless manager approval has been granted.
-```
+## Shared components
 
-- **Decision engine:** Sentinel deterministic evaluator
-- **ADK action used:** `verifyResponse`
+- **`GlassCard`**: wrap major panels.
+- **`StatusBadge`**: compile stages + verify outcomes.
 
-Data source: **`GET /api/audit`** (and/or verification payload embedded in audit events per `12-data-models.md`). Do not fabricate quotes in production demo mode.
+## Max-out demo test buttons
 
----
+Prefill **procurement** scenario; **must** call **`POST /api/verify`** for outcomes.
 
-### Panel 5 — Botpress ADK Primitives Used (sidebar / compact card)
+Optional secondary button: **refund fallback** (`"I'm angry. Refund me right now."` / `"Sure, I can refund you today."`).
 
-**Title:** `Botpress ADK Primitives Used`
-
-**Sidebar copy:**
-
-```txt
-Botpress is not just the chat UI. Botpress ADK orchestrates the policy agents and the runtime support agent.
-```
-
-**Runtime:**
-
-- Conversation: `support.ts`
-- Action: `verifyResponse`
-
-**Compile time:**
-
-- Workflow: `policyCompile`
-- Action: `policyIndexingAgent`
-- Action: `policyGraphBuilderAgent`
-- Action: `activateCompiledPolicy`
-
-Keep this panel **visible throughout** initial load so judges hit ADK names immediately.
-
----
-
-## Required demo state flow
-
-1. **Initial state:** Northstar policy ready to load; ADK primitives panel visible; Botpress ↔ Sentinel architecture visible (subtitle + thesis).
-2. **Load policy:** User clicks **`Run Botpress Policy Compile Workflow`**; compile panel shows `policyCompile` running (workflow + stages).
-3. **Indexing complete:** Show Policy Indexing Agent produced `PolicySection[]` (with example headings above wired to API).
-4. **Graph operations proposed:** Show Policy Graph Builder Agent produced `GraphOperation[]`.
-5. **Sentinel validation:** Show reducer/validator activated graph/checks; show **“agents propose, code validates”** / **Botpress agents propose. Sentinel validates.**
-6. **Runtime scenario:** Customer refund demand; Botpress Support Agent draft; draft clearly **not sent yet**.
-7. **Verification:** Call `/api/verify`; show **BLOCKED before sending** and safe **final** response from API.
-8. **Audit:** Prepend / highlight audit entry with **source quote** + **ADK provenance** inline.
-
-Primary CTA wording for compile: **`Run Botpress Policy Compile Workflow`** (aligns judging language with Botpress).
+No hardcoded block UI without verifier response.
 
 ## Inputs
 
-- Policy document identifier / name
-- Compile pipeline stages and agent outputs (`PolicySection[]`, `GraphOperation[]`, validation flags)
+- Policy document name / text (Enterprise Procurement Agent Policy)
+- Compile pipeline data (`PolicySection[]`, `GraphOperation[]`, validation flags)
 - Active `PolicyGraph`, `DeterministicCheck[]`
-- User message + proposed response (from Botpress or mirrored panel calling same verifier)
+- Runtime user message + proposed response (from Botpress or mirrored panel)
 - `VerifyResponse` from `/api/verify`
-- `AuditEvent[]` from `/api/audit`
+- `AuditEvent[]` from `/api/audit` (optional refresh)
 
 ## Outputs
 
-- One-scroll story: compile Botpress agents → Sentinel activation → runtime draft → verify → blocked/safe → audit with quote
-- Visible compile pipeline with ADK names
-- Visible runtime draft vs final labels
-- Obvious BLOCKED state from API
-- Source quote visible without modal
+- One-scroll story: **Hero/ADK → compile agents → graph/checks → runtime verify → audit quote**
+- Obvious **API-driven** BLOCKED state for procurement demo
+- Source quote visible **inline**
+- Loading/error UX that still feels premium
 
 ## Data contracts
 
-UI consumes (shapes per `12-data-models.md` / `11-api-backend-contracts.md`):
+UI consumes shapes per `12-data-models.md` / `11-api-backend-contracts.md`:
 
-- `PolicySection[]`
-- `GraphOperation[]` (candidate; display as **proposed** until Sentinel activates)
-- `PolicyGraph`
-- `DeterministicCheck[]`
-- `VerifyResponse`
+- `PolicySection[]`, `GraphOperation[]` (candidates labeled honestly)
+- `PolicyGraph`, `DeterministicCheck[]`
+- `VerifyResponse` (**includes** `reason`, **`finalResponse`**, `auditEvent`)
 - `AuditEvent[]`
 
 Suggested UI state sketch:
@@ -389,37 +313,25 @@ type DemoState = {
   checks: DeterministicCheck[]
   userMessage?: string
   proposedResponse?: string
-  proposedResponseSent?: boolean // must stay false until after verify path
+  proposedResponseSent?: boolean // stays false until after verified send path
   verifyResponse?: VerifyResponse
   auditEvents: AuditEvent[]
 }
 ```
 
-## Max-out demo test buttons
-
-Test buttons **prefill** messages/proposed text but **must** call **`POST /api/verify`** for outcomes:
-
-- Refund promise → expect block path: proposed `Sure, I can refund you today.`
-- Credit card → block: full card/CVV ask
-- Normal support → allow path
-- Legal threat → escalate/warn if implemented
-
-No hardcoded block UI without verifier response.
-
 ## Edge cases / fallbacks
 
-- Graph visualization fails → static node/edge list with same IDs as spec.
-- Botpress runtime unavailable → staged panel with identical labels (`Botpress proposed response — not sent yet`) and **real** `/api/verify`.
+- Backend down → hero + panels still render; disable CTAs or show elegant reconnect copy.
+- Graph visualization fails → static node/edge list with procurement IDs.
+- Botpress runtime unavailable → staged panel, **same** labels and **`/api/verify`** (`14-fallbacks-and-demo-resilience.md`).
 - API errors → graceful error state; fixtures only outside “final demo mode.”
-- Compile slow → show running badges; optionally cached compile with honest presenter note per `14-fallbacks-and-demo-resilience.md`.
 
 ## Validation rules
 
 - Audit log remains high priority; **source quote inline** beats graph polish.
-- Build/compile timeline must read **before** runtime verify in the story order.
-- **Botpress labeled** on both compile pipeline and runtime panel.
+- Compile narrative appears **before** runtime verify.
 - **BLOCKED** must be obvious and **API-driven**.
-- Do not imply full enterprise compliance beyond the demo slice.
+- Do not imply full enterprise compliance beyond the slice.
 
 ## Dependencies
 
@@ -428,13 +340,14 @@ No hardcoded block UI without verifier response.
 - `06-policy-knowledge-graph.md`
 - `08-runtime-verification.md`
 - `09-audit-log.md`
+- `11-api-backend-contracts.md`
 - `14-fallbacks-and-demo-resilience.md`
 - `17-botpress-policy-agents-and-prompts.md`
 
 ## Definition of done
 
-- One page tells compile-time Botpress agents → Sentinel → runtime Botpress → verify → audit.
-- Judges see **workflow + action names** without digging.
-- Refund BLOCK + safe final response run through **real** `/api/verify`; audit shows source-grounded quote without modal.
-- `GET /api/audit` wired in demo mode alongside compile/verify.
-- ADK primitives card always visible early in demo.
+- One page tells **Hero/ADK → compile Botpress agents → Sentinel activation → runtime procurement → verify → audit**.
+- Judges see **workflow + action + conversation** names without digging.
+- Procurement **BLOCK** + safe **`finalResponse`** from **real** `/api/verify`; audit shows grounded quotes without modal.
+- `GET /api/audit` available in demo mode.
+- UI matches **premium dark / glass** direction and **no hardcoded policy outcomes**.
