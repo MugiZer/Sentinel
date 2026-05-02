@@ -6,9 +6,9 @@ Turn Sentinel into a realistic 4-hour two-builder implementation plan with paral
 
 ## Builder ownership
 
-**Shared owner:** Hamza (Builder 1) and Kaveh (Builder 2)
+**Shared owner:** Kaveh (Builder 1) and Hamza (Builder 2)
 
-This file defines shared product alignment. Hamza is responsible for preserving the demo/presentation interpretation. Kaveh is responsible for preserving the backend/trustworthiness interpretation.
+This file defines shared product alignment. Kaveh is responsible for preserving the demo/presentation interpretation. Hamza is responsible for preserving the backend/trustworthiness interpretation.
 
 Any scope change here must be agreed by both builders.
 
@@ -18,7 +18,7 @@ The team needs to finish the vertical slice, not chase infrastructure. This plan
 
 ## Builder roles
 
-Hamza — Builder 1:
+Kaveh — Builder 1:
 
 - Botpress ADK.
 - UI dashboard.
@@ -26,7 +26,7 @@ Hamza — Builder 1:
 - Integration test.
 - Presentation.
 
-Kaveh — Builder 2:
+Hamza — Builder 2:
 
 - Sentinel backend.
 - Data models.
@@ -86,11 +86,11 @@ Shared integration boundary:
 
 ## Non-interference rules
 
-1. Kaveh owns backend truth. Hamza must not hardcode compliance decisions in the UI.
-2. Hamza owns Botpress/UI. Kaveh must not block on UI polish.
+1. Hamza owns backend truth. Kaveh must not hardcode compliance decisions in the UI.
+2. Kaveh owns Botpress/UI. Hamza must not block on UI polish.
 3. Both builders integrate only through `/api/policy/compile`, `/api/verify`, `/api/audit`, and canonical types.
 4. Any contract change must be made in `12-data-models.md` first.
-5. Candidate graph/check state must never be consumed by Hamza's UI or Botpress runtime as active state.
+5. Candidate graph/check state must never be consumed by Kaveh's UI or Botpress runtime as active state.
 6. UI fixtures are allowed only before backend is ready; final demo must use real `/api/verify`.
 7. Botpress may use a staged panel only if live integration fails, but Botpress must remain visible.
 8. No new features after the freeze point.
@@ -111,19 +111,19 @@ Both:
   - "Sure, I can refund you today."
 - agree on `VerifyRequest`, `VerifyResponse`, `CompilePolicyResponse`, `AuditEvent`
 
-Kaveh:
+Hamza:
 
 - creates/locks `12-data-models.md` implementation shape
 - scaffolds backend files
 
-Hamza:
+Kaveh:
 
 - scaffolds UI panels and Botpress ADK files
 - uses temporary fixture responses only until `/api/verify` is ready
 
 ### 0:20-1:20 — First real vertical slice
 
-Kaveh:
+Hamza:
 
 - implements `/api/verify`
 - implements `checkEvaluator.ts`
@@ -131,7 +131,7 @@ Kaveh:
 - implements in-memory `auditStore.ts`
 - hardcodes Northstar refund check first
 
-Hamza:
+Kaveh:
 
 - builds four-panel UI shell
 - builds `BotpressPanel`
@@ -146,7 +146,7 @@ Integration checkpoint:
 
 ### 1:20-2:20 — Compile path and source grounding
 
-Kaveh:
+Hamza:
 
 - implements `/api/policy/compile`
 - implements `policyParser.ts`
@@ -156,7 +156,7 @@ Kaveh:
 - enforces source quote validation
 - returns active graph/checks only
 
-Hamza:
+Kaveh:
 
 - connects `PolicyPanel` to `/api/policy/compile`
 - renders graph/checks in `GraphPanel`
@@ -171,15 +171,15 @@ Integration checkpoint:
 
 ### 2:20-3:10 — Botpress runtime integration
 
-Kaveh:
+Hamza:
 
 - runs Sentinel app on port `3002` or exposes via ngrok/Vercel
 - confirms `/api/verify` and `/api/policy/compile` are reachable
 - fixes CORS/network issues if needed
 
-Hamza:
+Kaveh:
 
-- points Botpress `SENTINEL_API_URL` to Kaveh's backend
+- points Botpress `SENTINEL_API_URL` to Hamza's backend
 - runs `adk dev`
 - tests Botpress chat: "I'm angry. Refund me right now."
 - verifies Botpress sends Sentinel final response
@@ -193,7 +193,7 @@ Integration checkpoint:
 
 ### 3:10-3:35 — Botpress compile-time agent workflow
 
-Kaveh:
+Hamza:
 
 - updates `/api/policy/compile` to accept optional:
   - `candidateSections`
@@ -201,7 +201,7 @@ Kaveh:
   - `generatedBy: "botpress-policy-workflow"`
 - validates candidates before activation
 
-Hamza:
+Kaveh:
 
 - implements or finalizes:
   - `policyIndexingAgent.ts`
@@ -227,13 +227,13 @@ Both:
 - verify Botpress is visible
 - rehearse the 3-minute pitch
 
-Hamza:
+Kaveh:
 
 - presentation flow
 - UI polish
 - Botpress console visibility
 
-Kaveh:
+Hamza:
 
 - backend stability
 - evaluator/audit/source quote correctness

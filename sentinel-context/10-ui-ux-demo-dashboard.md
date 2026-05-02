@@ -8,11 +8,11 @@ Source sections: 5, 14, 17.
 
 ## Builder ownership
 
-**Primary owner:** Hamza (Builder 1)
+**Primary owner:** Kaveh (Builder 1)
 
-Hamza owns implementation for this file because it belongs to the Botpress ADK / UI / demo surface.
+Kaveh owns implementation for this file because it belongs to the Botpress ADK / UI / demo surface.
 
-**Kaveh dependency:** Kaveh provides the backend API responses and canonical data contracts consumed here, but should not modify Botpress/UI flow directly during the hackathon unless both builders agree.
+**Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not modify Botpress/UI flow directly during the hackathon unless both builders agree.
 
 ## Why it matters for the demo
 
@@ -20,7 +20,7 @@ The dashboard must make the vertical slice visually obvious in under 3 minutes: 
 
 ## Backend dependency rules
 
-Hamza may use fixtures while Kaveh is still building the backend, but final demo mode must consume real API responses.
+Kaveh may use fixtures while Hamza is still building the backend, but final demo mode must consume real API responses.
 
 The UI may display:
 

@@ -10,13 +10,13 @@ Sentinel is not a PDF parser. Sentinel is a policy verification layer. Ingestion
 
 ## Builder ownership
 
-**Primary owner:** Kaveh (Builder 2)
+**Primary owner:** Hamza (Builder 2)
 
-Kaveh owns implementation for this file because it belongs to the Sentinel backend / truth engine.
+Hamza owns implementation for this file because it belongs to the Sentinel backend / truth engine.
 
-**Hamza dependency:** Hamza consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
+**Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
-Hamza depends on this file only through API responses and canonical types. Do not require Hamza to understand internal ingestion implementation to build the UI/Botpress layer.
+Kaveh depends on this file only through API responses and canonical types. Do not require Kaveh to understand internal ingestion implementation to build the UI/Botpress layer.
 
 ## Why it matters for the demo
 

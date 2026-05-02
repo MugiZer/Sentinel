@@ -22,9 +22,9 @@ Core thesis: prompting is not proof.
 
 ## Builder ownership
 
-**Shared owner:** Hamza (Builder 1) and Kaveh (Builder 2)
+**Shared owner:** Kaveh (Builder 1) and Hamza (Builder 2)
 
-This file defines shared product alignment. Hamza is responsible for preserving the demo/presentation interpretation. Kaveh is responsible for preserving the backend/trustworthiness interpretation.
+This file defines shared product alignment. Kaveh is responsible for preserving the demo/presentation interpretation. Hamza is responsible for preserving the backend/trustworthiness interpretation.
 
 Any scope change here must be agreed by both builders.
 
@@ -47,7 +47,7 @@ Any scope change here must be agreed by both builders.
 | `12-data-models.md` | Canonical TypeScript-shaped data models. |
 | `13-validation-and-trustworthiness.md` | Anti-hallucination rules and activation gates. |
 | `14-fallbacks-and-demo-resilience.md` | Demo failure modes and fallback paths. |
-| `15-five-hour-build-plan.md` | Four-hour concurrent Hamza/Kaveh implementation plan. |
+| `15-five-hour-build-plan.md` | Four-hour concurrent Kaveh/Hamza implementation plan. |
 | `16-presentation-script.md` | 3-minute presenter script. |
 | `17-botpress-policy-agents-and-prompts.md` | Botpress compile-time policy agents, prompts, and spawn plan. |
 
@@ -106,7 +106,7 @@ Botpress:
 
 ## Builder ownership map
 
-### Hamza — Builder 1
+### Kaveh — Builder 1
 
 Owns:
 
@@ -124,7 +124,7 @@ Primary files:
 - `16-presentation-script.md`
 - `17-botpress-policy-agents-and-prompts.md`
 
-### Kaveh — Builder 2
+### Hamza — Builder 2
 
 Owns:
 
@@ -171,41 +171,41 @@ Primary files:
 If using coding agents, align them under the human owners above:
 
 ```txt
-Product/Demo Agent under Hamza + Kaveh:
+Product/Demo Agent under Kaveh + Hamza:
 - 00-product-nucleus.md
 - 01-demo-story-and-judging-strategy.md
 - 16-presentation-script.md
 
-Botpress Integration Agent under Hamza:
+Botpress Integration Agent under Kaveh:
 - 02-botpress-adk-workflow.md
 - Botpress portions of 08-runtime-verification.md
 - Botpress portions of 11-api-backend-contracts.md
 - 17-botpress-policy-agents-and-prompts.md
 
-Policy Ingestion / Index Agent under Kaveh:
+Policy Ingestion / Index Agent under Hamza:
 - 03-policy-document-ingestion.md
 - 04-document-indexing.md
 
-RLM / Graph Build Agent under Kaveh:
+RLM / Graph Build Agent under Hamza:
 - 05-rlm-graph-build-workspace.md
 - 06-policy-knowledge-graph.md
 
-Check Engine Agent under Kaveh:
+Check Engine Agent under Hamza:
 - 07-deterministic-checks.md
 - 13-validation-and-trustworthiness.md
 
-Runtime Verification Agent under Kaveh:
+Runtime Verification Agent under Hamza:
 - 08-runtime-verification.md
 
-UI / Audit Demo Agent under Hamza, consuming Kaveh's audit API:
+UI / Audit Demo Agent under Kaveh, consuming Hamza's audit API:
 - 09-audit-log.md
 - 10-ui-ux-demo-dashboard.md
 
-API / Data Contracts Agent under Kaveh:
+API / Data Contracts Agent under Hamza:
 - 11-api-backend-contracts.md
 - 12-data-models.md
 
-Fallback / Build Plan Agent under Hamza + Kaveh:
+Fallback / Build Plan Agent under Kaveh + Hamza:
 - 14-fallbacks-and-demo-resilience.md
 - 15-five-hour-build-plan.md
 ```

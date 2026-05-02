@@ -12,9 +12,9 @@ Core thesis: prompting is not proof. The agent can be prompted to follow policy,
 
 ## Builder ownership
 
-**Shared owner:** Hamza (Builder 1) and Kaveh (Builder 2)
+**Shared owner:** Kaveh (Builder 1) and Hamza (Builder 2)
 
-This file defines shared product alignment. Hamza is responsible for preserving the demo/presentation interpretation. Kaveh is responsible for preserving the backend/trustworthiness interpretation.
+This file defines shared product alignment. Kaveh is responsible for preserving the demo/presentation interpretation. Hamza is responsible for preserving the backend/trustworthiness interpretation.
 
 Any scope change here must be agreed by both builders.
 

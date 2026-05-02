@@ -14,11 +14,11 @@ Keep exactly three real endpoints:
 
 ## Builder ownership
 
-**Primary owner:** Kaveh (Builder 2)
+**Primary owner:** Hamza (Builder 2)
 
-Kaveh owns implementation for this file because it belongs to the Sentinel backend / truth engine.
+Hamza owns implementation for this file because it belongs to the Sentinel backend / truth engine.
 
-**Hamza dependency:** Hamza consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
+**Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
 ## Why it matters for the demo
 
@@ -26,9 +26,9 @@ Stable API contracts let builders split work safely: the backend builder impleme
 
 ## Builder interface contract
 
-Kaveh owns the implementation of these endpoints. Hamza consumes these endpoints from the UI and Botpress ADK.
+Hamza owns the implementation of these endpoints. Kaveh consumes these endpoints from the UI and Botpress ADK.
 
-Hamza should not depend on internal backend modules. Kaveh should not depend on UI implementation details.
+Kaveh should not depend on internal backend modules. Hamza should not depend on UI implementation details.
 
 The only integration boundary is:
 

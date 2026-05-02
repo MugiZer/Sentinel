@@ -8,11 +8,11 @@ Source sections: 8, 10, 11, 12, 14, 19.
 
 ## Builder ownership
 
-**Primary owner:** Kaveh (Builder 2)
+**Primary owner:** Hamza (Builder 2)
 
-Kaveh owns implementation for this file because it belongs to the Sentinel backend / truth engine.
+Hamza owns implementation for this file because it belongs to the Sentinel backend / truth engine.
 
-**Hamza dependency:** Hamza consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
+**Kaveh dependency:** Kaveh consumes the output through the shared API/UI contract but should not modify this backend logic directly during the hackathon unless both builders agree.
 
 Any response shape change must be made here first, then both builders adapt.
 

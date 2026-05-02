@@ -1,6 +1,6 @@
 # Sentinel backend — manual API tests
 
-This project exposes **`POST /api/verify`** as the **only runtime authority** for allow/block/rewrite. Botpress and the dashboard (Kaveh) should call this endpoint, not embed policy outcomes in prompts or UI.
+This project exposes **`POST /api/verify`** as the **only runtime authority** for allow/block/rewrite. Botpress and the dashboard (Hamza) should call this endpoint, not embed policy outcomes in prompts or UI.
 
 ## Run the Next.js server on port 3002
 
