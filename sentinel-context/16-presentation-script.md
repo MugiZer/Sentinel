@@ -10,9 +10,9 @@ Source sections: 0, 1, 3, 5, 7, 15, final concise definition.
 
 **Primary owner:** Kaveh (Builder 1)
 
-Kaveh owns implementation for this file because it belongs to the Botpress ADK / UI / demo surface.
+Kaveh owns implementation for this file because it belongs to the demo / presentation surface (paired with the dashboard UI — not Botpress ADK code).
 
-**Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not modify Botpress/UI flow directly during the hackathon unless both builders agree.
+**Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not rewrite the presenter script unless both builders agree.
 
 ## Why it matters for the demo
 

@@ -8,9 +8,9 @@ Option A for Sentinel: Botpress ADK owns the compile-time policy agents. Sentine
 
 ## Builder ownership
 
-**Primary owner:** Kaveh (Builder 1)
+**Primary owner:** Whoever implements Botpress ADK for this build (not Kaveh).
 
-Kaveh owns implementation for this file because it belongs to the Botpress ADK / UI / demo surface.
+Kaveh does not own Botpress ADK or compile-time agent wiring. Kaveh owns the Sentinel frontend and may display provenance labels that refer to Botpress policy agents when the API provides that metadata.
 
 **Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not modify Botpress/UI flow directly during the hackathon unless both builders agree.
 

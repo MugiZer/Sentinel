@@ -16,15 +16,23 @@ Any scope change here must be agreed by both builders.
 
 The team needs to finish the vertical slice, not chase infrastructure. This plan prioritizes the real verification spine first, then UI/Botpress integration around stable contracts.
 
+## Botpress ADK lane
+
+Whoever implements Botpress ADK (not part of Kaveh's Sentinel frontend scope):
+
+- Runtime support agent wiring, verifier action, conversations, `adk dev`, and pointing `SENTINEL_API_URL` at Hamza's backend.
+- End-to-end test from Botpress chat through `/api/verify` to visible final response.
+- Optional compile-time policy workflow artifacts (`policyIndexingAgent.ts`, `policyGraphBuilderAgent.ts`, workflow glue) per `02-botpress-adk-workflow.md` and `17-botpress-policy-agents-and-prompts.md`.
+- Botpress console visibility during the demo.
+
 ## Builder roles
 
 Kaveh — Builder 1:
 
-- Botpress ADK.
-- UI dashboard.
-- Demo flow.
-- Integration test.
+- Sentinel dashboard UI.
+- Dashboard demo flow including staged Botpress proposed-response fallback.
 - Presentation.
+- UI consumption of `/api/policy/compile`, `/api/verify`, and `/api/audit` once Hamza exposes them.
 
 Hamza — Builder 2:
 
@@ -87,7 +95,7 @@ Shared integration boundary:
 ## Non-interference rules
 
 1. Hamza owns backend truth. Kaveh must not hardcode compliance decisions in the UI.
-2. Kaveh owns Botpress/UI. Hamza must not block on UI polish.
+2. Kaveh owns Sentinel frontend/dashboard only; Botpress ADK is a parallel lane. Hamza must not block on UI polish.
 3. Both builders integrate only through `/api/policy/compile`, `/api/verify`, `/api/audit`, and canonical types.
 4. Any contract change must be made in `12-data-models.md` first.
 5. Candidate graph/check state must never be consumed by Kaveh's UI or Botpress runtime as active state.
@@ -118,8 +126,12 @@ Hamza:
 
 Kaveh:
 
-- scaffolds UI panels and Botpress ADK files
+- scaffolds UI panels
 - uses temporary fixture responses only until `/api/verify` is ready
+
+Botpress ADK owner:
+
+- scaffolds Botpress ADK project files
 
 ### 0:20-1:20 — First real vertical slice
 
@@ -136,6 +148,9 @@ Kaveh:
 - builds four-panel UI shell
 - builds `BotpressPanel`
 - builds `AuditLogPanel`
+
+Botpress ADK owner:
+
 - creates Botpress `verifyResponse` Action
 - creates Botpress `support.ts` Conversation with hardcoded proposed response
 
@@ -177,13 +192,17 @@ Hamza:
 - confirms `/api/verify` and `/api/policy/compile` are reachable
 - fixes CORS/network issues if needed
 
-Kaveh:
+Botpress ADK owner:
 
 - points Botpress `SENTINEL_API_URL` to Hamza's backend
 - runs `adk dev`
 - tests Botpress chat: "I'm angry. Refund me right now."
 - verifies Botpress sends Sentinel final response
 - records fallback screen if needed
+
+Kaveh:
+
+- aligns dashboard staged panel with whichever path is live (Botpress vs fallback)
 
 Integration checkpoint:
 
@@ -201,7 +220,7 @@ Hamza:
   - `generatedBy: "botpress-policy-workflow"`
 - validates candidates before activation
 
-Kaveh:
+Botpress ADK owner:
 
 - implements or finalizes:
   - `policyIndexingAgent.ts`
@@ -231,6 +250,9 @@ Kaveh:
 
 - presentation flow
 - UI polish
+
+Botpress ADK owner:
+
 - Botpress console visibility
 
 Hamza:

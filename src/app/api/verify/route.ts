@@ -171,6 +171,12 @@ export async function POST(req: Request): Promise<NextResponse> {
     return NextResponse.json(res);
   }
 
+  const failedChecks = failures.map((f) => ({
+    checkId: f.checkId,
+    reason: f.reason ?? "",
+    violation: f.violation,
+  }));
+
   const worst = worstFailureSeverity(failures);
   const primaryBlock = failures.find((f) => f.result === "block");
   const primaryWarn = failures.find((f) => f.result === "warn");
@@ -204,6 +210,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     facts,
     violations,
     reason: primary.reason,
+    failedChecks,
     auditEvent,
   };
   return NextResponse.json(res);

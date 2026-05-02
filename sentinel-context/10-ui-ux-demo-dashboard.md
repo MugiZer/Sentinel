@@ -38,9 +38,9 @@ Do not present a generic compliance admin dashboard. Story the product as **Botp
 
 **Primary owner:** Kaveh (Builder 1)
 
-Kaveh owns implementation for this file because it belongs to the Botpress ADK / UI / demo surface.
+Kaveh owns implementation for this file because it belongs to the Sentinel frontend / demo surface only (not Botpress ADK code).
 
-**Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not modify Botpress/UI flow directly during the hackathon unless both builders agree.
+**Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not modify the dashboard UI directly during the hackathon unless both builders agree.
 
 ## Why it matters for the demo
 

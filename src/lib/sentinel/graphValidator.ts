@@ -35,12 +35,18 @@ export type GraphValidatorResult =
   | { ok: true; graph: PolicyGraph }
   | { ok: false; errors: string[] };
 
+export type GraphValidationOptions = {
+  /** Require every edge-adjacent node to define its own `source` quote (validated). */
+  strictNodeQuotes?: boolean;
+};
+
 /**
  * Structural validation plus source-quote presence/substring validity for active graph elements.
  */
 export function validatePolicyGraphAndSources(
   graph: PolicyGraph,
   sections: PolicySection[],
+  options?: GraphValidationOptions,
 ): GraphValidatorResult {
   const errors: string[] = [];
 
@@ -139,11 +145,28 @@ export function validatePolicyGraphAndSources(
   }
 
   for (const n of graph.nodes) {
-    if (!wired.has(n.id) || !n.source) continue;
-    const validated = validateSourceQuote(sections, n.source);
-    if (!validated.ok) {
-      const normQ = normalizeText(n.source.quote).slice(0, 120);
-      errors.push(`Active node "${n.id}" quote invalid: ${validated.reason} (quote~"${normQ}")`);
+    if (!wired.has(n.id)) continue;
+
+    if (options?.strictNodeQuotes) {
+      if (!n.source?.quote?.trim()) {
+        errors.push(
+          `Strict quotes: wired node "${n.id}" must carry its own source quote (not only via edges).`,
+        );
+        continue;
+      }
+      const validatedNode = validateSourceQuote(sections, n.source);
+      if (!validatedNode.ok) {
+        const normQ = normalizeText(n.source.quote).slice(0, 120);
+        errors.push(
+          `Strict quotes: node "${n.id}" invalid: ${validatedNode.reason} (quote~"${normQ}")`,
+        );
+      }
+    } else if (n.source) {
+      const validated = validateSourceQuote(sections, n.source);
+      if (!validated.ok) {
+        const normQ = normalizeText(n.source.quote).slice(0, 120);
+        errors.push(`Active node "${n.id}" quote invalid: ${validated.reason} (quote~"${normQ}")`);
+      }
     }
   }
 

@@ -110,19 +110,24 @@ Botpress:
 
 Owns:
 
-- Botpress ADK runtime support agent
-- Botpress compile-time policy workflow
-- Botpress actions/workflows/conversations
-- dashboard UI
-- demo flow and presentation
-- integration testing from Botpress to Sentinel
+- Sentinel dashboard UI
+- staged Botpress proposed-response panel in the dashboard (when live Botpress is unavailable)
+- demo flow and presentation script alignment with the UI
+
+Does not own (assign separately):
+
+- Botpress ADK runtime agent, conversations, actions, or `adk dev` wiring
+- Botpress compile-time policy workflow agent code
 
 Primary files:
 
-- `02-botpress-adk-workflow.md`
 - `10-ui-ux-demo-dashboard.md`
 - `16-presentation-script.md`
-- `17-botpress-policy-agents-and-prompts.md`
+
+Supporting read-only alignment:
+
+- `02-botpress-adk-workflow.md` (story and integration contract — implement elsewhere)
+- `17-botpress-policy-agents-and-prompts.md` (UI provenance labels only)
 
 ### Hamza — Builder 2
 
@@ -176,7 +181,7 @@ Product/Demo Agent under Kaveh + Hamza:
 - 01-demo-story-and-judging-strategy.md
 - 16-presentation-script.md
 
-Botpress Integration Agent under Kaveh:
+Botpress Integration Agent (not Kaveh; assign whoever owns Botpress ADK):
 - 02-botpress-adk-workflow.md
 - Botpress portions of 08-runtime-verification.md
 - Botpress portions of 11-api-backend-contracts.md

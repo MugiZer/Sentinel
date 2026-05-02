@@ -26,7 +26,7 @@ Stable API contracts let builders split work safely: the backend builder impleme
 
 ## Builder interface contract
 
-Hamza owns the implementation of these endpoints. Kaveh consumes these endpoints from the UI and Botpress ADK.
+Hamza owns the implementation of these endpoints. Kaveh consumes these endpoints from the Sentinel frontend only. Whoever owns Botpress ADK consumes the same public endpoints from the agent side.
 
 Kaveh should not depend on internal backend modules. Hamza should not depend on UI implementation details.
 

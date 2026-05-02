@@ -33,9 +33,11 @@ This preserves Sentinel's product thesis: prompting is not proof; verification i
 
 ## Builder ownership
 
-**Primary owner:** Kaveh (Builder 1)
+**Primary owner:** Whoever implements Botpress ADK for this build (not Kaveh).
 
-Kaveh owns implementation for this file because it belongs to the Botpress ADK / UI / demo surface.
+Kaveh does not own Botpress ADK code. Kaveh owns the Sentinel frontend (`10-ui-ux-demo-dashboard.md`) and may align only on demo labels, staged panels, and how the story presents Botpress.
+
+**Kaveh dependency:** Dashboard must reflect the verifier story and optional staged Botpress panel; no ADK implementation work in Kaveh's scope.
 
 **Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not modify Botpress/UI flow directly during the hackathon unless both builders agree.
 
