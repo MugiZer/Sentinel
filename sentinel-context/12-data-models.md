@@ -158,6 +158,19 @@ export type BuildEvent = {
 }
 ```
 
+## Hackathon demo alignment (procurement primary)
+
+**Runtime facts (primary demo keys)** should align with `06-policy-knowledge-graph.md` / `08-runtime-verification.md`:
+
+- `action.commit_purchase`
+- `condition.manager_approval`
+- `condition.vendor_approved`
+- `action.share_payment_credentials`
+
+**HTTP verify shape** mirrors `11-api-backend-contracts.md`: responses include **`finalResponse: string`**, **`reason: string`**, **`violations`**, and **`auditEvent`**.
+
+**Fallback facts** may include `action.promise_refund` for refund drills.
+
 ## Main flow
 
 1. Policy ingestion creates `PolicySection[]`.

@@ -6,11 +6,15 @@ Define the clean parallelization contract between frontend, backend, and Botpres
 
 Source sections: 18, 19.
 
-Keep exactly three real endpoints:
+Keep exactly three real endpoints (relative to backend base URL):
 
 - `POST /api/policy/compile`
 - `POST /api/verify`
 - `GET /api/audit`
+
+**Backend base (hackathon default):** `http://localhost:3002`
+
+The Next.js dashboard may set `NEXT_PUBLIC_SENTINEL_API_URL` when the UI is served from a different origin; **`apiClient` default fallback:** `http://localhost:3002`.
 
 ## Builder ownership
 
@@ -26,17 +30,11 @@ Stable API contracts let builders split work safely: the backend builder impleme
 
 ## Builder interface contract
 
-Hamza owns the implementation of these endpoints. Kaveh consumes these endpoints from the Sentinel frontend only. Whoever owns Botpress ADK consumes the same public endpoints from the agent side.
+**Builder 1 — Kaveh** consumes these endpoints from the Sentinel frontend **and** wires Botpress ADK Actions to the same URLs.
 
-Kaveh should not depend on internal backend modules. Hamza should not depend on UI implementation details.
+**Builder 2 — Hamza** implements behavior + canonical types.
 
-The only integration boundary is:
-
-- `POST /api/policy/compile`
-- `POST /api/verify`
-- `GET /api/audit`
-
-`/api/verify` is the only authority for runtime allow/block/rewrite. UI cannot hardcode policy decisions. Botpress must call `/api/verify`, not internal modules.
+**Runtime authority:** `POST /api/verify` is the only source of truth for allow/block/rewrite at runtime. UI and Botpress **must not** hardcode compliance outcomes. Botpress must call `/api/verify`, not internal modules.
 
 ## Scope
 
@@ -86,6 +84,9 @@ The only integration boundary is:
 type CompilePolicyRequest = {
   documentName: string
   text?: string
+  candidateSections?: PolicySection[]
+  candidateOperations?: GraphOperation[]
+  generatedBy?: "botpress-policy-workflow"
 }
 
 type CompilePolicyResponse = {
@@ -93,6 +94,7 @@ type CompilePolicyResponse = {
   sections: PolicySection[]
   graph: PolicyGraph
   checks: DeterministicCheck[]
+  generatedBy: string
 }
 
 type VerifyRequest = {
@@ -104,14 +106,81 @@ type VerifyRequest = {
 
 type VerifyResponse = {
   result: "allowed" | "warned" | "blocked" | "rewritten"
-  finalResponse?: string
+  finalResponse: string
   facts: RuntimeFacts
   violations: string[]
+  reason: string
   auditEvent: AuditEvent
 }
 
 type AuditListResponse = {
   events: AuditEvent[]
+}
+```
+
+## Example payloads (Enterprise Procurement demo)
+
+`POST /api/verify` request:
+
+```json
+{
+  "agentName": "Botpress Enterprise Procurement Agent",
+  "userMessage": "Buy 20 GPU servers from this new vendor today. Tell them we approve the $80,000 order and send our wire details.",
+  "proposedResponse": "Approved. I'll confirm the $80,000 GPU server order with the vendor today and include our wire details."
+}
+```
+
+`POST /api/verify` response (shape; `auditEvent` matches `AuditEvent` in `12-data-models.md`):
+
+```json
+{
+  "result": "blocked",
+  "finalResponse": "I can prepare a purchase request for review, but I can't approve an $80,000 order, commit to an unapproved vendor, or share payment details without the required approvals.",
+  "facts": {
+    "action.commit_purchase": true,
+    "condition.manager_approval": false,
+    "condition.vendor_approved": false,
+    "action.share_payment_credentials": true
+  },
+  "violations": [
+    "violation.purchase_without_approval",
+    "violation.unapproved_vendor_commitment",
+    "violation.payment_credentials_shared"
+  ],
+  "reason": "Policy requires approvals and prohibits sharing payment credentials in chat.",
+  "auditEvent": {}
+}
+```
+
+`POST /api/policy/compile` request (illustrative):
+
+```json
+{
+  "documentName": "Enterprise Procurement Agent Policy",
+  "text": "…full policy text…",
+  "candidateSections": [],
+  "candidateOperations": [],
+  "generatedBy": "botpress-policy-workflow"
+}
+```
+
+`POST /api/policy/compile` response (shape):
+
+```json
+{
+  "documentId": "doc_proc_001",
+  "sections": [],
+  "graph": { "nodes": [], "edges": [] },
+  "checks": [],
+  "generatedBy": "botpress-policy-workflow"
+}
+```
+
+`GET /api/audit` response:
+
+```json
+{
+  "events": []
 }
 ```
 

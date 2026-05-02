@@ -2,47 +2,37 @@
 
 ## Purpose
 
-Turn Sentinel into a realistic 4-hour two-builder implementation plan with parallel work streams and clear integration boundaries.
+Turn Sentinel into a realistic **4–5 hour** two-builder implementation plan with parallel work streams and clear integration boundaries.
 
 ## Builder ownership
 
-**Shared owner:** Kaveh (Builder 1) and Hamza (Builder 2)
+**Builder 1 — Kaveh** owns:
 
-This file defines shared product alignment. Kaveh is responsible for preserving the demo/presentation interpretation. Hamza is responsible for preserving the backend/trustworthiness interpretation.
+- Sentinel **Next.js** dashboard UI (`10-ui-ux-demo-dashboard.md`)
+- **Botpress ADK** project ( **`procurement.ts`**, **`verifyResponse`**, **`policyCompile`**, policy agents, `adk dev`, demo wiring)
+- Demo flow + **`16-presentation-script.md`**
+
+**Builder 2 — Hamza** owns:
+
+- Sentinel **backend** + canonical types
+- **`POST /api/verify`**, **`POST /api/policy/compile`**, **`GET /api/audit`**
+- Deterministic evaluator + audit store + source quote validation
+
+**Integration boundary:** Kaveh consumes Hamza **only** through the three HTTP APIs. **`/api/verify`** is runtime authority.
 
 Any scope change here must be agreed by both builders.
 
 ## Why it matters for the demo
 
-The team needs to finish the vertical slice, not chase infrastructure. This plan prioritizes the real verification spine first, then UI/Botpress integration around stable contracts.
+The team needs to finish the vertical slice, not chase infrastructure. This plan prioritizes the real verification spine first, then UI + Botpress integration around stable contracts.
 
-## Botpress ADK lane
+## Botpress ADK lane (Kaveh)
 
-Whoever implements Botpress ADK (not part of Kaveh's Sentinel frontend scope):
-
-- Runtime support agent wiring, verifier action, conversations, `adk dev`, and pointing `SENTINEL_API_URL` at Hamza's backend.
-- End-to-end test from Botpress chat through `/api/verify` to visible final response.
-- Optional compile-time policy workflow artifacts (`policyIndexingAgent.ts`, `policyGraphBuilderAgent.ts`, workflow glue) per `02-botpress-adk-workflow.md` and `17-botpress-policy-agents-and-prompts.md`.
-- Botpress console visibility during the demo.
-
-## Builder roles
-
-Kaveh — Builder 1:
-
-- Sentinel dashboard UI.
-- Dashboard demo flow including staged Botpress proposed-response fallback.
-- Presentation.
-- UI consumption of `/api/policy/compile`, `/api/verify`, and `/api/audit` once Hamza exposes them.
-
-Hamza — Builder 2:
-
-- Sentinel backend.
-- Data models.
-- Compile endpoint.
-- Verifier endpoint.
-- Deterministic checks.
-- Audit store.
-- Source quote validation.
+- ADK project root: `C:\Users\moham\sentinel-botpress-agent` (`02-botpress-adk-workflow.md`).
+- Runtime: `procurement.ts` + mandatory `verifyResponse` Action → `/api/verify`.
+- Compile: `policyCompile` + `policyIndexingAgent` + `policyGraphBuilderAgent` + `activateCompiledPolicy` → `/api/policy/compile`.
+- E2E: Botpress chat → `/api/verify` → verified message.
+- Console visibility during the demo.
 
 ## Scope
 
@@ -54,7 +44,7 @@ Hamza — Builder 2:
 - Real deterministic evaluator.
 - Real audit event generation.
 - Fixture-backed compile outputs only when needed.
-- Botpress runtime integration or staged fallback.
+- Botpress runtime integration **or** honest staged UI fallback.
 - Rehearsal and freeze point.
 
 ### Out of scope
@@ -76,14 +66,14 @@ Hamza — Builder 2:
 
 ## Outputs
 
-- A working 3-minute demo.
+- A working **3–5 minute** demo (**procurement-first**).
 - Stable shared contracts.
-- A clear division of responsibility.
+- Clear division of responsibility.
 - Fallback-ready build.
 
 ## Data contracts
 
-Use `12-data-models.md` as the shared type source from the start. Do not invent parallel shapes during the rush.
+Use `12-data-models.md` as the shared type source from the start.
 
 Shared integration boundary:
 
@@ -94,188 +84,122 @@ Shared integration boundary:
 
 ## Non-interference rules
 
-1. Hamza owns backend truth. Kaveh must not hardcode compliance decisions in the UI.
-2. Kaveh owns Sentinel frontend/dashboard only; Botpress ADK is a parallel lane. Hamza must not block on UI polish.
-3. Both builders integrate only through `/api/policy/compile`, `/api/verify`, `/api/audit`, and canonical types.
-4. Any contract change must be made in `12-data-models.md` first.
-5. Candidate graph/check state must never be consumed by Kaveh's UI or Botpress runtime as active state.
-6. UI fixtures are allowed only before backend is ready; final demo must use real `/api/verify`.
-7. Botpress may use a staged panel only if live integration fails, but Botpress must remain visible.
-8. No new features after the freeze point.
+1. Hamza owns backend truth. Kaveh must not hardcode compliance decisions in the UI **or** Botpress.
+2. Kaveh owns dashboard + Botpress ADK surface; Hamza must not block on UI polish.
+3. Integrate only through the three public APIs + canonical types from `12-data-models.md`.
+4. Contract changes start in `12-data-models.md`.
+5. Candidate graph/check state must never be treated as active until Sentinel activates it.
+6. UI fixtures allowed pre-backend; **final** demo uses real `/api/verify`.
+7. Staged Botpress panel allowed only if live chat fails—Botpress remains **visible** in labels/story.
+8. No new features after freeze.
 
 ## Main flow
 
 ### 0:00-0:20 — Contract freeze
 
-Both:
+Both agree:
 
-- agree on ports:
-  - Sentinel app: `localhost:3002`
-  - Botpress bot: `localhost:3000`
-  - Botpress control panel: `localhost:3001`
-- agree on source quote:
-  - "Agents must not promise or guarantee refunds unless manager approval has been granted."
-- agree on demo proposed response:
-  - "Sure, I can refund you today."
-- agree on `VerifyRequest`, `VerifyResponse`, `CompilePolicyResponse`, `AuditEvent`
+- Sentinel backend: `http://localhost:3002`
+- Botpress bot dev port per SDK (often `3000`); control UI per template (`3001` if applicable)
+- **Primary** demo copy:
+  - Procurement user message + proposed response (`01-demo-story-and-judging-strategy.md`)
+  - Three audit quotes for procurement policy
+- `VerifyRequest` / `VerifyResponse` / `CompilePolicyResponse` / `AuditEvent` shapes (`11-api-backend-contracts.md`)
+
+Hamza: scaffold backend modules.
+
+Kaveh: scaffold Next dashboard panels + ADK repo layout.
+
+### 0:20-1:20 — First real vertical slice (procurement block)
 
 Hamza:
 
-- creates/locks `12-data-models.md` implementation shape
-- scaffolds backend files
+- `/api/verify` + `checkEvaluator.ts`
+- keyword / stub `factExtractor.ts` for procurement facts
+- `auditStore.ts`
+- fixture active checks for **procurement triad** (approval, vendor, credentials)
 
 Kaveh:
 
-- scaffolds UI panels
-- uses temporary fixture responses only until `/api/verify` is ready
+- one-page shell + `RuntimeVerificationPanel` + `AuditTrailPanel` + `apiClient.ts`
 
-Botpress ADK owner:
+Botpress (Kaveh):
 
-- scaffolds Botpress ADK project files
+- `verifyResponse.ts`
+- `procurement.ts` with deterministic proposed text **or** model draft—**always** call verify before send
 
-### 0:20-1:20 — First real vertical slice
+Integration checkpoint:
+
+- `curl` / UI hits `/api/verify` → `blocked` + `finalResponse` + `auditEvent` for procurement scenario
+
+### 1:20-2:20 — Compile path + source grounding
 
 Hamza:
 
-- implements `/api/verify`
-- implements `checkEvaluator.ts`
-- implements keyword `factExtractor.ts`
-- implements in-memory `auditStore.ts`
-- hardcodes Northstar refund check first
+- `/api/policy/compile` accepts optional `candidateSections` / `candidateOperations` / `generatedBy`
+- graph reducer/validator + check compiler
+- return active graph/checks only
 
 Kaveh:
 
-- builds four-panel UI shell
-- builds `BotpressPanel`
-- builds `AuditLogPanel`
-
-Botpress ADK owner:
-
-- creates Botpress `verifyResponse` Action
-- creates Botpress `support.ts` Conversation with hardcoded proposed response
+- `CompileWorkflowPanel` + `PolicyGraphPanel` wired to API
+- honest **candidate vs activated** labeling
 
 Integration checkpoint:
 
-- curl to `/api/verify` returns `blocked`
-- UI can display a mocked blocked event but is ready to swap to real API
+- “Run compile” shows procurement sections + graph + checks (live or cached)
 
-### 1:20-2:20 — Compile path and source grounding
+### 2:20-3:10 — Botpress runtime hardening
 
 Hamza:
 
-- implements `/api/policy/compile`
-- implements `policyParser.ts`
-- implements simple `PolicySection[]` indexing
-- implements graph fixture / graph reducer / graph validator
-- implements check compiler
-- enforces source quote validation
-- returns active graph/checks only
+- CORS / tunnel docs as needed; stable `/api/verify` from Botpress host
 
 Kaveh:
 
-- connects `PolicyPanel` to `/api/policy/compile`
-- renders graph/checks in `GraphPanel`
-- adds visible provenance labels:
-  - "Policy sections proposed by Botpress Policy Indexing Agent"
-  - "Checks activated by Sentinel Validator"
-- keeps UI independent from backend internals
+- `adk dev` path; `SENTINEL_API_URL=http://localhost:3002`
+- chat test with procurement prompt
 
 Integration checkpoint:
 
-- clicking "Load/Compile Policy" shows sections, graph, and checks
+- live chat → verify → safe final message (or staged UI fallback ready **without** removing Botpress visibility)
 
-### 2:20-3:10 — Botpress runtime integration
-
-Hamza:
-
-- runs Sentinel app on port `3002` or exposes via ngrok/Vercel
-- confirms `/api/verify` and `/api/policy/compile` are reachable
-- fixes CORS/network issues if needed
-
-Botpress ADK owner:
-
-- points Botpress `SENTINEL_API_URL` to Hamza's backend
-- runs `adk dev`
-- tests Botpress chat: "I'm angry. Refund me right now."
-- verifies Botpress sends Sentinel final response
-- records fallback screen if needed
+### 3:10-3:35 — Botpress compile workflow
 
 Kaveh:
 
-- aligns dashboard staged panel with whichever path is live (Botpress vs fallback)
-
-Integration checkpoint:
-
-- Botpress support agent calls `/api/verify`
-- Botpress sends safe final response
-- Sentinel audit log receives blocked event
-
-### 3:10-3:35 — Botpress compile-time agent workflow
+- implement/film `policyCompile` orchestration calling `/api/policy/compile` via `activateCompiledPolicy`
 
 Hamza:
 
-- updates `/api/policy/compile` to accept optional:
-  - `candidateSections`
-  - `candidateOperations`
-  - `generatedBy: "botpress-policy-workflow"`
-- validates candidates before activation
-
-Botpress ADK owner:
-
-- implements or finalizes:
-  - `policyIndexingAgent.ts`
-  - `policyGraphBuilderAgent.ts`
-  - `activateCompiledPolicy.ts`
-  - `policyCompile.ts`
-- runs workflow if possible
-- if workflow fails, uses cached compile output but keeps provenance story honest
+- validate candidate payloads; fail gracefully to cached compile fixture
 
 Integration checkpoint:
 
-- Botpress compile workflow either works or is safely bypassed through cached compile data
-- runtime Botpress verification remains the priority
+- compile either live or cached; **runtime verify remains real**
 
 ### 3:35-4:00 — Freeze, polish, rehearse
 
 Both:
 
-- no new features
 - fix only demo-breaking bugs
-- run the full demo path
-- verify source quote is visible
-- verify Botpress is visible
-- rehearse the 3-minute pitch
-
-Kaveh:
-
-- presentation flow
-- UI polish
-
-Botpress ADK owner:
-
-- Botpress console visibility
-
-Hamza:
-
-- backend stability
-- evaluator/audit/source quote correctness
+- full procurement walkthrough
+- quotes visible inline
+- rehearse **3–5** minute script (`16-presentation-script.md`)
 
 ## Edge cases / fallbacks
 
-- If behind schedule after hour 1, keep fixture-backed graph/checks and prioritize real `/api/verify`, deterministic evaluation, audit, and source quotes.
-- If Botpress wiring is not done by the runtime integration checkpoint, use staged Botpress panel.
-- If deployment blocks progress, demo locally.
-- If model calls are unreliable, use cached graph and keyword fact fallback.
-- If Botpress compile-time workflow slips, use cached compile output but keep runtime verification real.
+- Slip after hour 1: keep cached compile; prioritize real `/api/verify`, evaluator, audit, quotes.
+- Botpress wiring slips: staged panel (`14-fallbacks-and-demo-resilience.md`).
+- Model unreliable: cached graph + keyword facts **into** evaluator (never skip evaluator).
 
 ## Validation rules
 
-- The refund block path must work before adding secondary rules.
-- Fixtures are allowed for compile-time outputs, but `/api/verify`, evaluator, audit event, and source quote path must be real.
-- Do not hardcode the final blocked decision in the UI.
-- Stop adding features at the freeze point.
-- No file or module should expand scope beyond the hackathon slice.
-- Botpress visibility must be preserved.
+- **Procurement** block path works before adding tertiary rules.
+- Fixtures allowed for compile outputs, but verify/evaluator/audit must be **real** in final demo.
+- No UI hardcoded block state.
+- Stop at freeze.
+- Botpress visibility preserved.
 
 ## Dependencies
 
@@ -291,10 +215,10 @@ Hamza:
 
 ## Definition of done
 
-- `/api/verify` returns blocked for the refund promise.
-- `/api/policy/compile` returns sections, graph, and checks.
-- UI shows policy, graph, Botpress proposed response, final response, and audit source quote.
-- Botpress ADK support conversation calls `/api/verify`.
-- Audit event is generated from actual verification result.
-- No active constraint exists without source quote.
-- Final demo path does not rely on a hardcoded blocked UI state.
+- `/api/verify` blocks the **procurement** unsafe draft with real evaluator + audit quotes.
+- `/api/policy/compile` returns sections + graph + checks (live or cached fallback).
+- Dashboard tells **Hero/ADK → compile → graph → runtime verify → audit**.
+- Botpress **`procurement.ts`** + **`verifyResponse`** calls `/api/verify` in the happy path.
+- audit event comes from actual verification.
+- no active constraint without source quote.
+- final demo avoids hardcoded blocked UI.

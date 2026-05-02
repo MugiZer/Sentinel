@@ -104,6 +104,8 @@ Every active constraint must be tied to an exact source quote and section/page f
 In production, a policy owner would approve extracted constraints before activation. So the LLM proposes constraints, but the policy document is the authority.
 ```
 
+The demo focuses procurement because autonomous agents can commit spend, bypass vendor controls, or leak payment instructions—exactly where "prompting" is obviously insufficient.
+
 Policy-owner approval is pitch-only / future production note, not a hackathon feature.
 
 ## Edge cases / fallbacks

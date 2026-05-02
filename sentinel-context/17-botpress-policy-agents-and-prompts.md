@@ -32,11 +32,11 @@ Botpress calls Sentinel through public API endpoints only.
 
 Runtime:
 
-- Botpress support agent calls `/api/verify`.
+- Botpress **Enterprise Procurement Agent** calls `/api/verify`.
 
 Compile time:
 
-- Botpress policy workflow may call `/api/policy/compile` with candidate sections/operations.
+- Botpress **`activateCompiledPolicy`** (or workflow final step) calls `/api/policy/compile` with candidate sections/operations.
 
 Botpress agents propose. Sentinel validates and enforces.
 
@@ -114,34 +114,45 @@ type AgentProposal<T> = {
 
 ## Main flow
 
-1. `/api/policy/compile` receives document name and text.
-2. Sentinel starts the Botpress Policy Compile Workflow.
-3. Policy Indexing Agent proposes `PolicySection[]`.
-4. Sentinel validates section shape and preserves section text.
-5. For each policy section/batch, Policy Graph Builder Agent proposes `GraphOperation[]`.
-6. Sentinel parses operations against strict schema.
-7. Sentinel reducer applies valid operations to candidate graph only.
-8. Sentinel validates source quotes, graph shape, references, caps, and allowed types.
-9. If validation fails, Botpress Graph Builder gets one repair prompt with validation errors.
-10. If repair fails, Sentinel falls back to cached graph/checks.
-11. Sentinel code compiles deterministic checks from validated graph relations.
-12. Sentinel validates checks.
-13. Sentinel activates `activeGraph` and `activeChecks`.
-14. Runtime `/api/verify` uses only `activeChecks`.
+1. `POST /api/policy/compile` receives document name and text plus optional Botpress candidate outputs (`candidateSections`, `candidateOperations`, `generatedBy: "botpress-policy-workflow"`).
+2. `PolicySection[]` enters Sentinel (from Botpress `policyIndexingAgent` proposals validated/normalized and/or from Sentinel `policyParser.ts`).
+3. For each bounded section/batch, `GraphOperation[]` proposals enter Sentinel (from Botpress `policyGraphBuilderAgent` and/or repair pass).
+4. Sentinel parses operations against strict schema.
+5. Sentinel reducer applies valid operations to candidate graph only.
+6. Sentinel validates source quotes, graph shape, references, caps, and allowed types.
+7. If validation fails, Botpress Graph Builder gets one repair prompt with validation errors.
+8. If repair fails, Sentinel falls back to cached graph/checks.
+9. Sentinel code compiles deterministic checks from validated graph relations.
+10. Sentinel validates checks.
+11. Sentinel activates `activeGraph` and `activeChecks`.
+12. Runtime `/api/verify` uses only `activeChecks`.
 
-## Botpress ADK Shape
+## Botpress ADK project shape + discovery
 
-Recommended project layout:
+Botpress ADK discovers exported primitives from `src/`:
+
+- Conversations — **`procurement.ts`** (runtime)
+- Actions — **`verifyResponse`**, **`policyIndexingAgent`**, **`policyGraphBuilderAgent`**, **`activateCompiledPolicy`**
+- Workflows — **`policyCompile`**
+- Tools — optional; **do not** put mandatory verification here
+- Tables / logs — optional provenance
+
+**Project root (runbook):** `C:\Users\moham\sentinel-botpress-agent` (`02-botpress-adk-workflow.md` for terminal commands).
+
+ADK is **code-first**: define agents/workflows/actions as TypeScript files; do not "spawn" arbitrary new agents at runtime for this demo.
 
 ```txt
-botpress-agent/
+sentinel-botpress-agent/
   agent.config.ts
-  src/conversations/support.ts
+  agent.json
+  package.json
+  src/conversations/procurement.ts
   src/actions/verifyResponse.ts
   src/workflows/policyCompile.ts
   src/actions/policyIndexingAgent.ts
   src/actions/policyGraphBuilderAgent.ts
-  src/actions/runtimeFactExtractorAgent.ts
+  src/actions/activateCompiledPolicy.ts
+  src/actions/runtimeFactExtractorAgent.ts   // optional
 ```
 
 Workflow:
@@ -150,14 +161,11 @@ Workflow:
 policyCompile workflow
 -> policyIndexingAgent action
 -> policyGraphBuilderAgent action per section/batch
--> Sentinel reducer/validator API/action
--> check compiler in Sentinel code
--> activation in Sentinel code
+-> activateCompiledPolicy action -> POST /api/policy/compile on Sentinel (validate + activate checks)
+-> deterministic check compilation in Sentinel code after validation
 ```
 
-Important implementation note:
-
-Botpress ADK is code-first: you create agents/workflows/actions as TypeScript files in an ADK project and deploy/run them. Your application code generally should not “auto-create” arbitrary new Botpress agents at runtime for this demo. Instead, define the Sentinel policy agents ahead of time as ADK actions/workflows with fixed prompts and schemas, then invoke them during compile.
+Important: The workflow must end at Sentinel's compile endpoint for activation truth. Botpress does not privately turn on checks without Sentinel validation.
 
 ## Agent System Prompts
 
@@ -172,7 +180,8 @@ Rules:
 - Return JSON only.
 - Do not infer graph rules yet.
 - Preserve exact section text for source quote matching.
-- Prefer known Northstar section headers when present.
+- Prefer known Enterprise Procurement Agent Policy section headers when present (threshold purchases, vendor approval, payments/credentials, urgency wording).
+- Fallback: Northstar-style headers can remain for refund test documents.
 - If headings are messy, use simple section boundaries.
 - Every section must include id, title, text, containsPolicyLogic, and processed.
 - processed must be false.
@@ -202,7 +211,8 @@ Rules:
 - Do not paraphrase source quotes.
 - Do not create generic background, legal, compliance, or explanation nodes.
 - Only enforceable policy concepts become nodes/edges.
-- Prefer stable IDs like action.promise_refund, condition.manager_approval, violation.refund_without_approval.
+- Prefer stable IDs like `action.commit_purchase`, `condition.manager_approval`, `condition.vendor_approved`, `action.share_payment_credentials`, `violation.purchase_without_approval`, `violation.unapproved_vendor_commitment`, `violation.payment_credentials_shared`.
+- Fallback / secondary fixtures: action.promise_refund, condition.manager_approval, violation.refund_without_approval.
 - Do not compile final active checks unless explicitly requested.
 - Do not mutate state directly.
 ```
@@ -256,7 +266,7 @@ Expected output:
 ## Edge cases / fallbacks
 
 - Botpress compile workflow is slow to wire -> use Sentinel backend LLM functions with the same prompt contracts.
-- Policy Indexing Agent returns invalid JSON -> retry once, then use known Northstar section splitter.
+- Policy Indexing Agent returns invalid JSON -> retry once, then use **Enterprise Procurement** section splitter / cached sections.
 - Graph Builder Agent returns invalid JSON -> retry once, then cached `GraphOperation[]` or cached graph/checks.
 - Source quote mismatch -> operation remains inactive/rejected.
 - Repair pass fails -> cached graph/checks.

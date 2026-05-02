@@ -172,7 +172,7 @@ Prevention:
 
 Prevention:
 
-- Use stable IDs like `action.promise_refund`, `condition.manager_approval`, and `violation.refund_without_approval`.
+- Use stable IDs like `action.commit_purchase`, `condition.manager_approval`, `condition.vendor_approved`, `action.share_payment_credentials`, `violation.purchase_without_approval`, `violation.unapproved_vendor_commitment`, `violation.payment_credentials_shared` (procurement primary), plus fallback IDs like `action.promise_refund` and `violation.refund_without_approval`.
 - Duplicate IDs are rejected or ignored.
 - Similar/duplicate concepts should be merged only through `MERGE_NODES`.
 

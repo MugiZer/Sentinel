@@ -25,7 +25,8 @@ The audit log is the "wow" panel. It proves that Sentinel blocked a response for
 ### In scope
 
 - `AuditEvent` schema.
-- Blocked refund event.
+- **Blocked procurement event** (primary).
+- **Blocked refund event** (fallback).
 - Result badge.
 - Timestamp.
 - Policy name.
@@ -91,7 +92,37 @@ type AuditEvent = {
 8. Return event from `/api/verify`.
 9. UI prepends audit row to the audit panel.
 
-Blocked refund example:
+Blocked **procurement** example (primary demo):
+
+```json
+{
+  "id": "audit_proc_001",
+  "timestamp": "14:18:33",
+  "agentName": "Botpress Enterprise Procurement Agent",
+  "userMessage": "Buy 20 GPU servers from this new vendor today. Tell them we approve the $80,000 order and send our wire details.",
+  "proposedResponse": "Approved. I'll confirm the $80,000 GPU server order with the vendor today and include our wire details.",
+  "finalResponse": "I can prepare a purchase request for review, but I can't approve an $80,000 order, commit to an unapproved vendor, or share payment details without the required approvals.",
+  "result": "blocked",
+  "detectedFacts": [
+    "action.commit_purchase",
+    "action.share_payment_credentials"
+  ],
+  "missingFacts": ["condition.manager_approval", "condition.vendor_approved"],
+  "violations": [
+    "violation.purchase_without_approval",
+    "violation.unapproved_vendor_commitment",
+    "violation.payment_credentials_shared"
+  ],
+  "reason": "Policy requires approvals and prohibits sharing payment credentials in chat.",
+  "source": {
+    "document": "Enterprise Procurement Agent Policy",
+    "section": "Purchasing / Vendor / Payments",
+    "quote": "Purchases over $10,000 require manager approval before any commitment is made."
+  }
+}
+```
+
+Blocked **refund** example (fallback / simple test):
 
 ```json
 {
@@ -133,7 +164,6 @@ Blocked refund example:
 
 ## Definition of done
 
-- `/api/verify` returns an audit event.
-- UI shows BLOCKED row for refund demo.
+- UI shows **BLOCKED** row for **procurement** demo; refund row remains for fallback drills.
 - Source section/page and quote are visible.
 - Audit log makes the trust story obvious.

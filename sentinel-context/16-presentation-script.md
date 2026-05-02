@@ -2,47 +2,45 @@
 
 ## Purpose
 
-Give the presenter a tight 3-minute pitch for Sentinel.
+Give the presenter a tight **3–5 minute** pitch for Sentinel (**procurement-first**).
 
 Source sections: 0, 1, 3, 5, 7, 15, final concise definition.
 
 ## Builder ownership
 
-**Primary owner:** Kaveh (Builder 1)
+**Builder 1 — Kaveh** owns presenter delivery + dashboard/demo surface.
 
-Kaveh owns implementation for this file because it belongs to the demo / presentation surface (paired with the dashboard UI — not Botpress ADK code).
-
-**Hamza dependency:** Hamza provides the backend API responses and canonical data contracts consumed here, but should not rewrite the presenter script unless both builders agree.
+**Builder 2 — Hamza** owns API truth; does not rewrite the script unless both agree.
 
 ## Why it matters for the demo
 
-The product is technical. The script keeps the explanation focused: prompting is not proof, Sentinel verifies before sending, and Botpress is central.
+The product is technical. The script keeps the explanation focused: autonomous **enterprise** agents can commit real harm; **prompting is not proof**; Sentinel verifies **before** send/execute; Botpress stays central.
 
 ## Scope
 
 ### In scope
 
-- 20-second problem.
-- 20-second product thesis.
-- 60-second live demo.
-- 40-second technical architecture.
-- 30-second trustworthiness answer.
-- ~15-second Botpress ADK emphasis (compile workflow + Conversation + verify action).
-- 10-second closing line.
+- **~20–30s** problem (business commitments / money / vendors / payment data).
+- **~20–30s** product thesis + category (**policy firewall**).
+- **~60–120s** live demo (procurement).
+- **~30–40s** architecture (compile once, deterministic runtime).
+- **~20–30s** trustworthiness answer (quotes + activation + deterministic code).
+- **~15s** Botpress ADK emphasis (**`policyCompile`** + **`procurement.ts`** + **`verifyResponse` Action** — **not** an optional Tool).
+- **~10s** closing line.
 
 ### Out of scope
 
 - Long market analysis.
-- Detailed compliance claims.
+- Detailed compliance/legal guarantees.
 - Deep implementation walkthrough.
-- Multiple demo stories.
+- Multiple competing primary stories (refund is **fallback** only).
 
 ## Inputs
 
-- Working dashboard.
-- Northstar Bank policy fixture.
-- Botpress support agent or staged proposed-response panel.
-- Blocked refund audit event.
+- Working dashboard (Hero + panels).
+- **Enterprise Procurement Agent Policy** fixture.
+- Botpress **procurement** agent **or** honest staged panel with same strings.
+- Blocked procurement audit event with visible quotes.
 
 ## Outputs
 
@@ -50,83 +48,71 @@ The product is technical. The script keeps the explanation focused: prompting is
 - Timing structure.
 - Closing line.
 
-## Data contracts
-
-This file does not define data contracts. It references the implementation concepts:
-
-- `PolicyGraph`
-- `DeterministicCheck`
-- `RuntimeFacts`
-- `AuditEvent`
-
 ## Main flow
 
-20-second problem:
+**Open (5–10s):**
 
 ```txt
-Enterprises want to deploy AI agents, but they cannot trust prompts alone for policy compliance. A prompt can say "follow the policy," but if the agent promises something it should not, there is no external proof or enforcement.
+Botpress agents are becoming capable enough to make business commitments. Prompting alone is not proof.
 ```
 
-20-second product thesis:
+**Product thesis (15–20s):**
 
 ```txt
-Sentinel is Botpress-native policy verification. Compile-time Botpress ADK agents propose policy structure; Sentinel activates only validated checks. The runtime Botpress support agent proposes replies; Sentinel blocks or rewrites before anything is sent—all with policy source quotes on the audit trail.
+Sentinel is a policy firewall for Botpress enterprise agents. Compile-time ADK workflows propose policy structure; Sentinel activates only validated checks. At runtime, agents propose replies and actions—we verify them before anything is sent or executed. Botpress agents propose. Sentinel validates. Botpress sends only verified output.
 ```
 
-60-second live demo (follow this order):
+**Live demo (60–120s) — follow this order:**
 
 ```txt
-1. Prompting is not proof.
-2. Here is Botpress workflow policyCompile: indexing and graph agents running against Northstar's policy via the ADK — policyIndexingAgent, then policyGraphBuilderAgent.
-3. Policy Indexing Agent output: PolicySection[] including Refunds and Reimbursements.
-4. Policy Graph Builder Agent output: GraphOperation[] — nodes, edges for refund approval.
-5. Sentinel reducer and validator activated deterministic checks — Botpress agents propose; Sentinel validates.
-6. Botpress Support Agent drafts: "Sure, I can refund you today," labeled not sent yet.
-7. verifyResponse hits POST /api/verify — blocked before sending.
-8. Verified final reply from Botpress: manager approval needed before confirming a refund.
-9. Audit shows the triggering check, violation reason, and the exact policy sentence — visible without digging.
-10. Botpress agents propose. Sentinel validates. Verification is the enforcement layer.
+1. Open with: Botpress agents are becoming capable enough to make business commitments. Prompting alone is not proof.
+2. Show the Enterprise Procurement Agent policy (the rules judges should remember).
+3. Show Botpress policyCompile: Policy Indexing Agent + Policy Graph Builder Agent (names on screen).
+4. Show Sentinel validator activating deterministic checks (candidate vs active honestly).
+5. Show the runtime procurement request: "Buy 20 GPU servers from this new vendor today… approve… wire details."
+6. Show the Botpress proposed response: "Approved. I'll confirm the $80,000… include our wire details." — label: not sent yet.
+7. Click Verify with Sentinel (or show Botpress calling verifyResponse): BLOCKED BEFORE EXECUTION.
+8. Show the safe final response from Sentinel (finalResponse).
+9. Show the audit panel with a visible source quote tied to the block.
+10. Close with: Botpress agents propose. Sentinel validates. Verification is the enforcement layer.
 ```
 
-40-second technical architecture:
+**Architecture (30–40s):**
 
 ```txt
-The expensive work happens once at policy compile time. Agents read bounded policy sections, build a policy graph, and attach source quotes. The graph compiles into deterministic checks.
-
-At runtime, Sentinel does not reread the full document. It sends only the proposed response and compact fact keys to a verifier, then local deterministic code evaluates the active checks in milliseconds.
+The expensive interpretation happens at compile time: bounded sections, graph proposals, source quotes, deterministic checks. At runtime Sentinel does not reread the whole policy. It extracts compact facts from the proposed response and runs deterministic checks in milliseconds, then returns finalResponse and audit evidence.
 ```
 
-30-second trustworthiness answer:
+**Trustworthiness (20–30s):**
 
 ```txt
-The LLM does not get to invent active constraints. Every active rule needs an exact source quote. If there is no quote, it does not activate. Then graph and check validation run before runtime enforcement. In production, a policy owner would approve constraints before activation.
+We don't let a benign-looking sentence bypass enforcement. Every active check is grounded in an exact quote from the policy text. No quote, no activation. Deterministic code decides block versus allow—not vibes, not the model self-policing.
 ```
 
-15-second Botpress ADK emphasis (compile + runtime):
+**Botpress ADK (15s):**
 
 ```txt
-ADK Workflow policyCompile orchestrates compile-time agents; Conversation support.ts and Action verifyResponse wire runtime. Judges should see Botpress proposing both policy structure and the chat draft—with Sentinel verifying both paths.
+ADK Workflow policyCompile drives compile-time policy agents. Conversation procurement.ts drafts the reply, but verifyResponse—implemented as an Action, not an optional Tool—always calls Sentinel /api/verify before send.
 ```
 
-10-second closing line:
+**Close (10s):**
 
 ```txt
-Sentinel turns policy text into deterministic enforcement against agent output. Prompting is not proof; verification is.
+Sentinel turns policy into enforceable gates on autonomous agent output. Prompting is not proof; verification is.
 ```
 
 ## Edge cases / fallbacks
 
-- If Botpress integration is simulated, say: "This panel shows the same proposed-response step our Botpress verifier workflow calls."
-- If graph generation is cached, say: "For demo reliability, this policy has been precompiled; the same compile endpoint produces this graph."
-- If running locally, do not apologize; focus on the working vertical slice.
+- Staged panel: "This is the same proposed-response point our Botpress Action calls—here is the live /api/verify."
+- Cached compile: "Compile output is cached for reliability; verification is live."
+- Locally hosted: stay confident; focus on the vertical slice.
 
 ## Validation rules
 
-- Mention compile-time **`policyCompile`** + indexing/graph builders and runtime **`support.ts`** / **`verifyResponse`** during the demo block (see `10-ui-ux-demo-dashboard.md`).
-- Mention source quotes.
-- Mention deterministic checks.
+- Mention **`policyCompile`**, **`procurement.ts`**, **`verifyResponse`** during the demo.
+- Mention **source quotes** + **deterministic checks**.
 - Do not claim full legal compliance.
-- Keep the story centered on refund promise without manager approval.
+- Keep the **primary** story on **procurement**, not refunds.
 
 ## Dependencies
 
@@ -139,7 +125,6 @@ Sentinel turns policy text into deterministic enforcement against agent output. 
 
 ## Definition of done
 
-- Script fits in 3 minutes.
-- Script explains the technical thesis clearly.
-- Script handles the hallucination/trust concern.
-- Script ends with the product thesis.
+- Script fits in **3–5 minutes** at rehearsal pace.
+- Viewer understands **why procurement** makes the risk obvious.
+- Script ends on the enforcement-layer thesis.
