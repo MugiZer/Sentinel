@@ -109,3 +109,14 @@ export type CompilePolicyResponse = {
 export type AuditListResponse = {
   events: AuditEvent[];
 };
+
+export type BuildEvent = {
+  id: string;
+  timestamp: string;
+  type:
+    | "section_processed"
+    | "operation_applied"
+    | "validation_failed"
+    | "checks_compiled";
+  message: string;
+};
