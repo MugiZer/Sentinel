@@ -13,11 +13,38 @@ import type {
   VerifyResponse,
 } from "@/lib/sentinel/types";
 
-const BLOCKED_SAFE_FINAL =
+const BLOCKED_REFUND_FINAL =
   "I can help submit a refund request, but manager approval is required before I can confirm it.";
+
+const BLOCKED_PAYMENT_FINAL =
+  "I cannot collect full card numbers, CVV/CVC codes, PINs, or similar payment secrets in chat. I can help you finish payment through our secure flows or escalate you to human support instead.";
+
+const BLOCKED_PAYMENT_AND_REFUND_FINAL =
+  "I cannot approve refunds outside the documented manager-review path, and I also cannot gather card-security details inside chat. I will route this to secure payment options and escalation so the right banker can finish this safely.";
 
 function isNonEmptyString(v: unknown): v is string {
   return typeof v === "string" && v.trim().length > 0;
+}
+
+function blockedFallbackCopy(failures: { checkId: string; violation?: string }[]): string {
+  const hitRefund = failures.some(
+    (f) =>
+      f.checkId === "check.refund_requires_approval" ||
+      f.violation === "violation.refund_without_approval",
+  );
+  const hitPayment = failures.some(
+    (f) =>
+      f.checkId === "check.no_payment_credentials" ||
+      f.violation === "violation.payment_credentials_requested",
+  );
+
+  if (hitRefund && hitPayment) {
+    return BLOCKED_PAYMENT_AND_REFUND_FINAL;
+  }
+  if (hitPayment) {
+    return BLOCKED_PAYMENT_FINAL;
+  }
+  return BLOCKED_REFUND_FINAL;
 }
 
 function validateChecksArray(
@@ -156,7 +183,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   const isBlocked = worst === "block";
   const result: VerifyResponse["result"] = isBlocked ? "blocked" : "warned";
   const finalResponse = isBlocked
-    ? BLOCKED_SAFE_FINAL
+    ? blockedFallbackCopy(failures.map((f) => ({ checkId: f.checkId, violation: f.violation })))
     : b.proposedResponse!.trim();
 
   const auditEvent: AuditEvent = {

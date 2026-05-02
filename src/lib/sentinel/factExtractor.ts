@@ -16,6 +16,36 @@ export function factKeysFromChecks(checks: DeterministicCheck[]): string[] {
   return [...keys];
 }
 
+function detectRequestPaymentCredentials(textNorm: string): boolean {
+  const asks =
+    /(?:please|kindly)?\s*(send|provide|share|tell\s+(?:me\s+)?|give\s+(?:me\s+)?|enter|type)\b[\s\S]{0,64}\b(cvv|cvc|csc)\b/i.test(
+      textNorm,
+    ) ||
+    /(?:please|kindly)?\s*(send|provide|share|give|enter)\b[\s\S]{0,80}\bcard\b[\s\S]{0,24}\b(number|digits|detail)\b/i.test(
+      textNorm,
+    ) ||
+    /\b(can|could)\s+you\s+(send|share|provide)[\s\S]{0,64}\bcvv\b/i.test(textNorm) ||
+    /\bwhat(?:'s|s| is)?\s+your\b[\s\S]{0,40}\bcvv\b/i.test(textNorm) ||
+    /\bverification\s+(?:digits|codes?)\s+from\s+(?:your\s+)?card\b/i.test(textNorm);
+
+  const directMentions =
+    /\bcvv2?\b/.test(textNorm) ||
+    /\bcvc\b/.test(textNorm) ||
+    /\bcvv\s*#/i.test(textNorm) ||
+    /\bcard\b[\s,.]*\b(pin|pins)\b/.test(textNorm) ||
+    /\brouting\b[\s\S]{0,18}\baccount\b[\s\S]{0,18}\bnumber\b/.test(textNorm) ||
+    /\bfull\s+card\b/.test(textNorm) ||
+    /\b16[-\s]?\d{2}[\s\S]{0,20}\bfull\b/.test(textNorm);
+
+  /** Safety language about not collecting secrets should not trip the trigger. */
+  const antiRequest =
+    /\b(do\s*not|don'?t|never|can'?t|cannot|won'?t|avoid|please\s+do\s+not)\b[\s\S]{0,80}\b(cvv|cvc|card\s+number|pin)\b/i.test(
+      textNorm,
+    );
+
+  return (asks || directMentions) && !antiRequest;
+}
+
 /**
  * Keyword-based fact extraction from the proposed response only (hackathon-safe, no policy document read).
  */
@@ -27,13 +57,10 @@ export function extractRuntimeFacts(
   const facts: RuntimeFacts = {};
 
   const mentionsRefund =
-    /\brefund\b/.test(text) ||
-    /\bmoney\s*back\b/.test(text) ||
-    /\breimburse\b/.test(text);
+    /\brefund\b/.test(text) || /\bmoney\s*back\b/.test(text) || /\breimburse\b/.test(text);
 
   const proceduralRefundLanguage =
-    /\brefund\s+request\b/.test(text) ||
-    /\bsubmit\b[\s\S]{0,60}\brefund\b/.test(text);
+    /\brefund\s+request\b/.test(text) || /\bsubmit\b[\s\S]{0,60}\brefund\b/.test(text);
 
   const promiseRefund =
     mentionsRefund &&
@@ -48,12 +75,7 @@ export function extractRuntimeFacts(
     /\bapproved\s+by\s+a\s+manager\b/.test(text) ||
     /\bmanager\s+approved\b/.test(text);
 
-  const requestPaymentCredentials =
-    /\bcvv\b/.test(text) ||
-    /\bcvc\b/.test(text) ||
-    /\bcard\s*number\b/.test(text) ||
-    /\bfull\s+card\b/.test(text) ||
-    /\bpayment\s+card\s+details\b/.test(text);
+  const requestPaymentCredentials = detectRequestPaymentCredentials(text);
 
   for (const key of factKeys) {
     if (key === "action.promise_refund") {

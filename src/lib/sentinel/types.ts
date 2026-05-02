@@ -37,6 +37,14 @@ export type PolicyGraph = {
   edges: PolicyEdge[];
 };
 
+/** Botpress-proposed graph deltas — Sentinel applies then validates/compiles downstream. */
+export type GraphOperation =
+  | { type: "ADD_NODE"; node: PolicyNode }
+  | { type: "ADD_EDGE"; edge: PolicyEdge }
+  | { type: "ATTACH_SOURCE"; targetKind: "node" | "edge"; targetId: string; source: SourceQuote }
+  | { type: "MARK_SECTION_PROCESSED"; sectionId: string }
+  | { type: "MERGE_NODES"; primaryId: string; mergeIds: string[] };
+
 export type DeterministicCheck = {
   id: string;
   name: string;
@@ -95,8 +103,13 @@ export type VerifyResponse = {
 };
 
 export type CompilePolicyRequest = {
-  documentName: string;
+  /** Defaults to Northstar handbook title when omitted on wire (hackathon ergonomics). */
+  documentName?: string;
   text?: string;
+  candidateSections?: PolicySection[];
+  candidateOperations?: GraphOperation[];
+  /** E.g. `botpress-policy-workflow` \| `sentinel-local` \| `cached-demo`. */
+  generatedBy?: string;
 };
 
 export type CompilePolicyResponse = {
@@ -104,6 +117,8 @@ export type CompilePolicyResponse = {
   sections: PolicySection[];
   graph: PolicyGraph;
   checks: DeterministicCheck[];
+  /** Describes which pipeline produced the artifact (often includes Sentinel path hints). */
+  generatedBy: string;
 };
 
 export type AuditListResponse = {
