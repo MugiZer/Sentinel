@@ -90,9 +90,13 @@ export default function DemoDashboard() {
   const policyFileInputRef = useRef<HTMLInputElement>(null);
 
   const refreshAudit = useCallback(async () => {
-    const res = await fetch("/api/audit");
-    const data = (await res.json()) as { events?: AuditEvent[] };
-    setAuditEvents(data.events ?? []);
+    try {
+      const res = await fetch("/api/audit");
+      const data = (await res.json()) as { events?: AuditEvent[] };
+      setAuditEvents(data.events ?? []);
+    } catch {
+      /* ignore poll failures (server boot, tab background, network) */
+    }
   }, []);
 
   useEffect(() => {
