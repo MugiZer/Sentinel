@@ -6,72 +6,75 @@ import type {
   VerifyResponse,
 } from "@/lib/sentinel/types";
 
-/**
- * Resolved API origin for Sentinel REST routes.
- * - Default (unset): same-origin `/api/...` when UI and backend are one Next deployment.
- * - Split UI: set `NEXT_PUBLIC_SENTINEL_API_URL` (typical local demo: `http://localhost:3002`).
- */
+/** Base URL for Sentinel API. Same-origin when empty in the browser. SSR falls back for server fetches. */
 export function getSentinelApiBase(): string {
-  const raw = process.env.NEXT_PUBLIC_SENTINEL_API_URL;
-  if (typeof raw === "string") {
-    const t = raw.trim().replace(/\/$/, "");
-    return t === "" ? "" : t;
-  }
-  return "";
+  const env = process.env.NEXT_PUBLIC_SENTINEL_API_URL?.trim();
+  if (env) return env.replace(/\/$/, "");
+  if (typeof window !== "undefined") return "";
+  return "http://localhost:3002";
 }
 
 function apiUrl(path: string): string {
   const base = getSentinelApiBase();
-  if (!base) {
-    return path.startsWith("/") ? path : `/${path}`;
-  }
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${normalized}`;
-}
-
-async function parseJson<T>(res: Response): Promise<T | { error?: string }> {
-  try {
-    return (await res.json()) as T;
-  } catch {
-    return { error: res.statusText || "Invalid JSON" };
-  }
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return base ? `${base}${p}` : p;
 }
 
 export async function compilePolicy(
   payload: CompilePolicyRequest,
-): Promise<CompilePolicyResponse> {
-  const res = await fetch(apiUrl("/api/policy/compile"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  const data = await parseJson<CompilePolicyResponse>(res);
-  if (!res.ok) {
-    const err = data as { error?: string };
-    throw new Error(err.error ?? res.statusText);
+): Promise<{ ok: true; data: CompilePolicyResponse } | { ok: false; error: string; status: number }> {
+  try {
+    const res = await fetch(apiUrl("/api/policy/compile"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data: unknown = await res.json();
+    if (!res.ok) {
+      const err = data as { error?: string };
+      return { ok: false, error: err.error ?? res.statusText, status: res.status };
+    }
+    return { ok: true, data: data as CompilePolicyResponse };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Network error";
+    return { ok: false, error: msg, status: 0 };
   }
-  return data as CompilePolicyResponse;
 }
 
-export async function verifyResponse(payload: VerifyRequest): Promise<VerifyResponse> {
-  const res = await fetch(apiUrl("/api/verify"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  const data = await parseJson<VerifyResponse>(res);
-  if (!res.ok) {
-    const err = data as { error?: string };
-    throw new Error(err.error ?? res.statusText);
+export async function verifyResponse(
+  payload: VerifyRequest,
+): Promise<{ ok: true; data: VerifyResponse } | { ok: false; error: string; status: number }> {
+  try {
+    const res = await fetch(apiUrl("/api/verify"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data: unknown = await res.json();
+    if (!res.ok) {
+      const err = data as { error?: string };
+      return { ok: false, error: err.error ?? res.statusText, status: res.status };
+    }
+    return { ok: true, data: data as VerifyResponse };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Network error";
+    return { ok: false, error: msg, status: 0 };
   }
-  return data as VerifyResponse;
 }
 
-export async function getAuditEvents(): Promise<AuditListResponse> {
-  const res = await fetch(apiUrl("/api/audit"));
-  const data = await parseJson<AuditListResponse>(res);
-  if (!res.ok) {
-    throw new Error(res.statusText);
+export async function getAuditEvents(): Promise<
+  { ok: true; data: AuditListResponse } | { ok: false; error: string; status: number }
+> {
+  try {
+    const res = await fetch(apiUrl("/api/audit"));
+    const data: unknown = await res.json();
+    if (!res.ok) {
+      const err = data as { error?: string };
+      return { ok: false, error: err.error ?? res.statusText, status: res.status };
+    }
+    return { ok: true, data: data as AuditListResponse };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Network error";
+    return { ok: false, error: msg, status: 0 };
   }
-  return data as AuditListResponse;
 }

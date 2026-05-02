@@ -1,5 +1,5 @@
-import DemoDashboard from "@/components/DemoDashboard";
+import { SentinelDashboard } from "@/components/SentinelDashboard";
 
 export default function Home() {
-  return <DemoDashboard />;
+  return <SentinelDashboard />;
 }

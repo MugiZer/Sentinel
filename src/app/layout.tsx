@@ -28,7 +28,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${jetbrainsMono.variable}`}>{children}</body>
+      <body
+        className={`${dmSans.variable} ${jetbrainsMono.variable} min-h-screen bg-zinc-950 font-sans text-zinc-100 antialiased`}
+        style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}
+      >
+        {children}
+      </body>
     </html>
   );
 }
