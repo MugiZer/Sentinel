@@ -4,21 +4,21 @@
 
 This folder decomposes `masterspec.md` into implementation-ready context files for the Sentinel hackathon build.
 
-Core vertical slice:
+Core vertical slice (demo/on-screen):
 
 ```txt
 Policy document
--> document index
--> policy graph
--> deterministic checks
--> Botpress proposed response
--> runtime fact extraction
--> check evaluation
--> allow / warn / block / rewrite
--> audit log with source quote
+-> Botpress policyCompile Workflow (policyIndexingAgent, policyGraphBuilderAgent)
+-> Sentinel reducer + validator
+-> deterministic checks activated
+-> Botpress support.ts drafts response (not sent)
+-> verifyResponse -> POST /api/verify
+-> blocked / rewritten / allowed (API-driven)
+-> Botpress sends verified final response only
+-> GET /api/audit: source quote visible
 ```
 
-Core thesis: prompting is not proof.
+Core thesis: prompting is not proof. Botpress agents propose; Sentinel validates.
 
 ## Builder ownership
 
@@ -42,7 +42,7 @@ Any scope change here must be agreed by both builders.
 | `07-deterministic-checks.md` | Check compiler and deterministic evaluator behavior. |
 | `08-runtime-verification.md` | Proposed-response fact extraction, check execution, rewrite, and audit. |
 | `09-audit-log.md` | Audit event schema and the visual proof panel. |
-| `10-ui-ux-demo-dashboard.md` | One-page four-panel demo UI. |
+| `10-ui-ux-demo-dashboard.md` | One-page demo UI: compile-time Botpress ADK pipeline, graph + checks, runtime support agent + verify path, audit, ADK primitives sidebar (hackathon judging). |
 | `11-api-backend-contracts.md` | API endpoints and backend module boundaries. |
 | `12-data-models.md` | Canonical TypeScript-shaped data models. |
 | `13-validation-and-trustworthiness.md` | Anti-hallucination rules and activation gates. |
@@ -221,7 +221,7 @@ Fallback / Build Plan Agent under Kaveh + Hamza:
 - Runtime never rereads the full policy document.
 - Expensive LLM work happens at policy compile time.
 - Runtime uses compact fact extraction plus deterministic checks.
-- The audit log is the demo centerpiece.
+- The hackathon dashboard surfaces Botpress ADK primitives and both compile/runtime agent paths (`10-ui-ux-demo-dashboard.md`).
 
 ## Implementation Order Recommendation
 

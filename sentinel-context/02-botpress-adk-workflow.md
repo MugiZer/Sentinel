@@ -8,12 +8,25 @@ Source sections: 6, 7, 13, 18.
 
 Sentinel should not treat Botpress as a decorative chat panel. Botpress is the customer-facing agent runtime. Sentinel is the mandatory verification layer that checks the Botpress agent's proposed response before the user sees it.
 
-Core integration thesis:
+Core integration thesis (aligned with `10-ui-ux-demo-dashboard.md`):
 
 ```txt
-Botpress generates the proposed response.
-Sentinel verifies the proposed response.
+Botpress agents propose. Sentinel validates. Botpress sends only verified output.
+```
+
+Runtime support path:
+
+```txt
+Botpress drafts the proposed response.
+Sentinel verifies via POST /api/verify.
 Botpress sends only the verified final response.
+```
+
+Compile-time path:
+
+```txt
+Botpress Policy Indexing + Graph Builder agents propose sections and GraphOperation[].
+Sentinel reducer + validator activates only validated graph/checks.
 ```
 
 This preserves Sentinel's product thesis: prompting is not proof; verification is.
@@ -51,7 +64,7 @@ Key concepts for Sentinel:
 - **Exit**: lets `execute()` return structured output instead of directly sending a final user message.
 - **Action**: reusable deterministic business logic callable from conversations, workflows, triggers, other actions, tools, or external systems.
 - **Tool**: function the AI model may choose to call during `execute()`.
-- **Workflow**: long-running or multi-step process, useful later for policy compilation but not required for the 4-hour demo.
+- **Workflow**: multi-step orchestration; use **`policyCompile`** for compile-time policy agents so judges see Botpress ADK (see `10-ui-ux-demo-dashboard.md`).
 - **Trigger**: reacts to external/system events; optional for this demo.
 - **Zai**: Botpress utility layer for structured LLM extraction/classification; optional because Sentinel's own backend can own fact extraction.
 
@@ -63,6 +76,8 @@ Action/direct code call = system definitely calls it.
 ```
 
 Sentinel verification must be mandatory, so the verifier should be called by code through an Action or direct fetch, not left as an optional model-called Tool.
+
+Hackathon judging (Montreal Cursor @ Botpress): **surface ADK visibly** — Workflow `policyCompile` with Actions `policyIndexingAgent`, `policyGraphBuilderAgent`, `activateCompiledPolicy` at compile time; Conversation `support.ts` and Action `verifyResponse` at runtime. Details and UI layout live in `10-ui-ux-demo-dashboard.md`.
 
 ## Scope
 
@@ -88,7 +103,7 @@ Sentinel verification must be mandatory, so the verifier should be called by cod
 - Botpress tables as the canonical Sentinel database.
 - Botpress knowledge bases as the policy source of truth.
 - HITL integration unless there is spare time.
-- Complex workflows for the 4-hour build.
+- Complex workflows beyond the scoped **`policyCompile`** orchestration.
 - Letting the support agent decide whether to call the verifier.
 - Multi-tenant Botpress administration.
 
@@ -403,34 +418,19 @@ Recommended owner:
 Sentinel backend owns fact extraction.
 ```
 
-## Optional use of Workflows
+## Workflows vs runtime path
 
-Do not use Workflows for runtime verification in the hackathon.
-
-Runtime verification must be fast and direct:
+Do not use Workflows for **runtime** verification in the hackathon. Runtime stays direct:
 
 ```txt
-Conversation -> Action -> /api/verify -> final response
+Conversation -> verifyResponse Action -> POST /api/verify -> Botpress sends final response
 ```
 
-Workflows may be useful later for policy compilation:
+For **compile time**, expose a Botpress ADK Workflow **`policyCompile`** that orchestrates indexing and graph-builder actions (`policyIndexingAgent`, `policyGraphBuilderAgent`, `activateCompiledPolicy`). The dashboard should show this workflow explicitly (`10-ui-ux-demo-dashboard.md`). Sentinel owns **`POST /api/policy/compile`** as the authoritative apply/validate/activate boundary:
 
 ```txt
-upload policy
--> parse sections
--> build graph
--> validate
--> compile checks
--> activate policy
-```
-
-But for the hackathon, keep policy compilation in the Sentinel app.
-
-For Sentinel's stronger Botpress-native architecture, compile-time policy agents can still be Botpress ADK actions/workflows. The boundary is:
-
-```txt
-Botpress Policy Indexing / Graph Builder agents propose sections and GraphOperation[].
-Sentinel reducer/validator code applies, validates, compiles, and activates.
+Botpress Workflow policyCompile + policy agents propose sections and GraphOperation[].
+Sentinel reducer/validator applies, validates sources/edges, compiles checks, activates.
 ```
 
 See `17-botpress-policy-agents-and-prompts.md` for the compile-time agent spawning/prompt plan.

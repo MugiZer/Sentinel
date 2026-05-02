@@ -27,7 +27,7 @@ The product is technical. The script keeps the explanation focused: prompting is
 - 60-second live demo.
 - 40-second technical architecture.
 - 30-second trustworthiness answer.
-- 20-second Botpress ADK emphasis.
+- ~15-second Botpress ADK emphasis (compile workflow + Conversation + verify action).
 - 10-second closing line.
 
 ### Out of scope
@@ -70,21 +70,22 @@ Enterprises want to deploy AI agents, but they cannot trust prompts alone for po
 20-second product thesis:
 
 ```txt
-Sentinel is a Botpress-native policy verification layer. It turns policy documents into source-grounded policy graphs, compiles deterministic checks, and verifies Botpress agent responses before users see them.
+Sentinel is Botpress-native policy verification. Compile-time Botpress ADK agents propose policy structure; Sentinel activates only validated checks. The runtime Botpress support agent proposes replies; Sentinel blocks or rewrites before anything is sent—all with policy source quotes on the audit trail.
 ```
 
-60-second live demo:
+60-second live demo (follow this order):
 
 ```txt
-Here is Northstar Bank's AI Agent Compliance Manual. Sentinel extracts the rule that refund promises require manager approval, builds a small policy graph, and compiles a deterministic check.
-
-Now the customer asks: "I'm angry. Refund me right now."
-
-The Botpress support agent drafts: "Sure, I can refund you today."
-
-Sentinel intercepts that proposed response, extracts the fact that this is a refund promise, sees that manager approval is missing, blocks the response, and returns a safer version.
-
-The audit log shows exactly why: refund promise requires manager approval, with the source quote from the policy.
+1. Prompting is not proof.
+2. Here is Botpress workflow policyCompile: indexing and graph agents running against Northstar's policy via the ADK — policyIndexingAgent, then policyGraphBuilderAgent.
+3. Policy Indexing Agent output: PolicySection[] including Refunds and Reimbursements.
+4. Policy Graph Builder Agent output: GraphOperation[] — nodes, edges for refund approval.
+5. Sentinel reducer and validator activated deterministic checks — Botpress agents propose; Sentinel validates.
+6. Botpress Support Agent drafts: "Sure, I can refund you today," labeled not sent yet.
+7. verifyResponse hits POST /api/verify — blocked before sending.
+8. Verified final reply from Botpress: manager approval needed before confirming a refund.
+9. Audit shows the triggering check, violation reason, and the exact policy sentence — visible without digging.
+10. Botpress agents propose. Sentinel validates. Verification is the enforcement layer.
 ```
 
 40-second technical architecture:
@@ -101,16 +102,16 @@ At runtime, Sentinel does not reread the full document. It sends only the propos
 The LLM does not get to invent active constraints. Every active rule needs an exact source quote. If there is no quote, it does not activate. Then graph and check validation run before runtime enforcement. In production, a policy owner would approve constraints before activation.
 ```
 
-20-second Botpress ADK emphasis:
+15-second Botpress ADK emphasis (compile + runtime):
 
 ```txt
-Botpress is central here. The customer-facing support agent drafts the response, the verifier workflow checks it before sending, and Sentinel returns the allowed, blocked, or rewritten response back into the Botpress flow.
+ADK Workflow policyCompile orchestrates compile-time agents; Conversation support.ts and Action verifyResponse wire runtime. Judges should see Botpress proposing both policy structure and the chat draft—with Sentinel verifying both paths.
 ```
 
 10-second closing line:
 
 ```txt
-Sentinel makes enterprise AI agents safer by turning policy from text into runtime enforcement. Prompting is not proof; verification is.
+Sentinel turns policy text into deterministic enforcement against agent output. Prompting is not proof; verification is.
 ```
 
 ## Edge cases / fallbacks
@@ -121,7 +122,7 @@ Sentinel makes enterprise AI agents safer by turning policy from text into runti
 
 ## Validation rules
 
-- Mention Botpress by name.
+- Mention compile-time **`policyCompile`** + indexing/graph builders and runtime **`support.ts`** / **`verifyResponse`** during the demo block (see `10-ui-ux-demo-dashboard.md`).
 - Mention source quotes.
 - Mention deterministic checks.
 - Do not claim full legal compliance.
